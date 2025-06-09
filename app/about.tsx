@@ -1,8 +1,10 @@
-import * as Application from 'expo-application';
-import { Stack, useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Modal, Pressable, ScrollView, Dimensions, StyleSheet, Text, View, TouchableHighlight } from 'react-native';
+import { useRouter, Stack, useLocalSearchParams  } from 'expo-router';
+import { SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { useState } from 'react';
+import * as Application from 'expo-application';
+import { iniObj } from './comFunc';
 import { styles } from './index';
 
 export default function about(){

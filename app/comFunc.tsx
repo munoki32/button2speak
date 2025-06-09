@@ -27,21 +27,25 @@ export let iniObj={
   replayScrnHold: false,
   defaultSortType: 'def',
   removeButtonHistory: true,
+  writeLogFile: false,
+  logLevel: 0,
 }
 
-export const pgObjPath = FileSystem.documentDirectory + 'button2speak.txt';
-export const pgObjPathOld = FileSystem.documentDirectory + 'button2speakOld.txt';
-export const freeTextPath = FileSystem.documentDirectory + 'button2speakFreeText.json';
-export const iniObjPath = FileSystem.documentDirectory + 'button2speakIniObj.txt';
-export const pgObjShare = FileSystem.documentDirectory + 'button2speakData.txt';
-export let freeTextScn = 14;
+export const pgObjPath = FileSystem.documentDirectory + 'SpeakPad4.txt';
+export const pgObjPathOld = FileSystem.documentDirectory + 'SpeakPad4Old.txt';
+export const freeTextPath = FileSystem.documentDirectory + 'SpeakPad4FreeText.json';
+export const iniObjPath = FileSystem.documentDirectory + 'SpeakPad4IniObj.txt';
+export const pgObjShare = FileSystem.documentDirectory + 'SpeakPad4Data.txt';
+export const logPath = FileSystem.documentDirectory + 'SpeakPad4Log.txt';
 
 export let pgStack = [0]  // history of page move (use for Back button)
 export let speakStack:string[] =[]  // history of spaak
 export let mojiStack:string[] =[]  // history of spaak
 export let dispText:string[] = []  // display text on modal
+export let logFile:string = '' // log
 
 export function resetIniObj() {
+  writeLog( 0, 'resetIniObj:');
   iniObj = { // 初期化時に反映されるデータ
     defaultButtonColor:'#dcdcdc',
     defualtTextColor:'black', 
@@ -58,59 +62,55 @@ export function resetIniObj() {
     replayScrnHold: false,
     defaultSortType: 'def',
     removeButtonHistory: true,
+    writeLogFile: false, 
+    logLevel: 0,
   }
 }
 
 export function initData(){ //　初期化で呼ばれる処理
-  resetIniObj();
+  writeLog( 0, 'initData 0:');
+  resetIniObj();   // 初期値設定
   pgObj.splice(0) // 全てをクリア
   pgObj.push({ pgTitle:'', btnList:[], pgOption:'' });
   pgStack.splice(0)
   freeText.splice(0)
   storeCSVdata(defString, 0);
-  // console.log('initData:' + defString.substring(0,100));
-  console.log('initData:' );
+  writeLog( 0, 'initData E:' + defString.substring(0,100));
 }
 
 export async function readInitialFile() { // 開始時に呼ばれる処理
+  writeLog( 0, 'readInitialFile 1:');
   if (Platform.OS === 'web' ) {
     initData();
     storeCSVdata(defString, 0);
     return }
-  console.log('readInitialFile:');
   await readIniObj();  // 設定読込み
-  let tmp = await FileSystem.getInfoAsync(pgObjPath);
+  let tmp = await FileSystem.getInfoAsync(pgObjPath); //　頁データ読込み
   if (tmp.exists) {
     try {
       const pgObjTxt = await FileSystem.readAsStringAsync(pgObjPath, {
         encoding: FileSystem.EncodingType.UTF8, 
       });
-      // console.log('readInitialFile:' + pgObjTxt.substring(0,100));
-      console.log('readInitialFile:');
-      // console.log('readInitailFile:');
+      // writeLog( 0, 'readInitialFile:' + pgObjTxt.substring(0,100));
+      writeLog( 0, 'readInitialFile 2:');
+      // writeLog( 0, 'readInitailFile:');
       storeCSVdata(pgObjTxt, 0) // 設定読込み（追加の設定も）
       readFreeText();
     } catch (e) {
-      console.log(e);
-      console.log('readInitialFile Error:' + pgObjPath + '\n');
+      writeLog( 0, e);
+      writeLog( 0, 'readInitialFile Error:' + pgObjPath + '\n');
     }
   } else { // if saved data not exist read from default definition
-    console.log('readInitialFile: file not exist');
+    writeLog( 0, 'readInitialFile 3: file not exist');
     initData();
     storeCSVdata(defString, 0);
-    // console.log('readInitialFile:' + defString.substring(0,100));
+    // writeLog( 0, 'readInitialFile 3:' + defString.substring(0,100));
     writeFile();
   }
-
-  freeTextScn = pgObj.findIndex(text => text.pgTitle === 'フリー') // find free text screen
-  // console.log('findFreeTextScreen:' + freeTextScn);
-  if (freeTextScn < 0) { // no free text screen
-    pgObj.push({ pgTitle:'フリー', btnList:[], pgOption:'sort:dat row:8' }); // フリー画面の初期値
-    freeTextScn = pgObj.length - 1;
-  } 
 }
 
 export const writeFile = async () => {
+  writeLog( 0, 'writeFile:1');
   if (Platform.OS === 'web' ) { return }
   var pgObjTxt = makeCVSdata(false);
   try {
@@ -119,25 +119,26 @@ export const writeFile = async () => {
       const pgObjTxtOld = await FileSystem.readAsStringAsync(pgObjPath, {
         encoding: FileSystem.EncodingType.UTF8, });
       if (compString(pgObjTxt, pgObjTxtOld)) {             // 変更が有ったか？
-        console.log('writeFile: data Same');
+        writeLog( 0, 'writeFile: data Same');
         writeIniObj();
         return
       }
       await FileSystem.copyAsync({     // 保存ファイルを改名
         from: pgObjPath,
         to:   pgObjPathOld, });
-      console.log('writeFile rename:');
+      writeLog( 0, 'writeFile rename:');
     }
     await FileSystem.writeAsStringAsync(pgObjPath, pgObjTxt, {
       encoding: FileSystem.EncodingType.UTF8, });
-    console.log('writeFile:');
+    writeLog( 0, 'writeFile:2');
     writeIniObj();
   } catch (e) {
-    console.log(e);
-    console.log('writeFile Error:' + pgObjPath + '\n');
+    writeLog( 0, e);
+    writeLog( 0, 'writeFile Error:' + pgObjPath + '\n');
   }
 //  Alert.alert('情報','設定を保存しました')
 }
+
 function compString(str1:string, str2:string){
   if (str1.length !== str2.length) return false;
   const lineData1 = str1.split(/\n/);
@@ -150,8 +151,28 @@ function compString(str1:string, str2:string){
   return true;
 }
 
+export async function writeLog( level:number, text:any ){
+  const date = new Date();
+  date.setTime(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+  const d = date.toISOString().replace('T', ' ').substring(5,19);
+  if (iniObj.writeLogFile) {
+    console.log(d.substring(6) + ' ' + text );
+    logFile += d + ' ' + text + '\n';
+    await FileSystem.writeAsStringAsync(logPath, logFile, {
+        encoding: FileSystem.EncodingType.UTF8, });
+  } else {
+    console.log('>' + d.substring(6) + ' ' + text );
+  }
+}
+
+export const shareLog = async () => {
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) { return;  }
+  await Sharing.shareAsync(logPath);  // ファイル共有
+};
+
 export function makeCVSdata(removeButtonHistory:boolean) {
-  console.log('makeCVSdata:' + removeButtonHistory);
+  writeLog( 0, 'makeCVSdata:' + removeButtonHistory);
   let csvBuff = "// button2speak config data:"
   if ( iniObj.defaultButtonColor !== '#dcdcdc' ) { csvBuff += ' dbc:' + iniObj.defaultButtonColor }
   if ( iniObj.defualtTextColor !== 'black' ) { csvBuff += ' dtc:' + iniObj.defualtTextColor }
@@ -160,7 +181,7 @@ export function makeCVSdata(removeButtonHistory:boolean) {
   // if ( iniObj.defaultSortType !== 'def' ) { csvBuff += ' sort:' + iniObj.defaultSortType }
   csvBuff += '\n'
   const d = new Date();    // Tue Apr 22 2025 23:46:00 GMT+0900 (日本標準時)
-  csvBuff += '// saved ' + d + '\n'; // console.log('date:' + d);
+  csvBuff += '// saved ' + d + '\n'; // writeLog( 0, 'date:' + d);
   for (let i = 0 ; i < pgObj.length ; i++){
     if ((pgObj[i].pgTitle === '' ) && (pgObj[i].btnList.length <= 0)) { continue } // skip if blank page
     csvBuff += "//-----------------------------------------------(" + i.toString() + ")\n";
@@ -188,16 +209,18 @@ export function makeCVSdata(removeButtonHistory:boolean) {
     }
   }
   csvBuff += "//-------------- End of Data ------------------------------\n";
-  // console.log(csvBuff);
+  // writeLog( 0, csvBuff);
   return csvBuff
 }
 
 export async function copyToClipboard(){
+  writeLog( 0, 'copyToClipboard:' );
   await Clipboard.setStringAsync(makeCVSdata(iniObj.removeButtonHistory));
   Alert.alert('情報','クリップボードへ書込みました') 
 }
   
 export const shareFile = async () => {
+  writeLog( 0, 'shareFile:' );
   const isAvailable = await Sharing.isAvailableAsync();
   if (!isAvailable) {   // 共有できるかチェック
     Alert.alert('共有できません', 'このデバイスでは共有機能が使えません');
@@ -205,17 +228,18 @@ export const shareFile = async () => {
   }
   await FileSystem.writeAsStringAsync(pgObjShare, makeCVSdata(iniObj.removeButtonHistory), {
     encoding: FileSystem.EncodingType.UTF8, });
-  console.log('writeShare:'+ iniObj.removeButtonHistory );
+  writeLog( 0, 'writeShare:'+ iniObj.removeButtonHistory );
   await Sharing.shareAsync(pgObjShare);  // ファイル共有
 };
-
+  
 export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
+  writeLog( 0, 'storeCSVdata:' + scnNum);
   let lineCount = 0;
   iniObj.defaultButtonColor = '#dcdcdc'
   iniObj.defualtTextColor = 'black' 
   iniObj.controlButtonColor = '#ddff99'
   iniObj.controlButtonBorder = 'gray'
-//  console.log('storeCVSdata start ----------------------');
+//  writeLog( 0, 'storeCVSdata start ----------------------');
   const lineData = csvBuff.split(/\n/);
   for ( let i = 0; i < lineData.length ; i++) { //Header Process
     lineData[i].trim();
@@ -236,22 +260,22 @@ export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
 // 
   let curPgNum = 0
   for (let i = 0 ; i < lineData.length ; i++) {  // process body 
-//    console.log('line data:' + lineData[i]);
+//    writeLog( 0, 'line data:' + lineData[i]);
     if (lineData[i].length < 1) { lineCount++; continue }
     if (lineData[i] === '') {lineCount++; continue}
     if (lineData[i].indexOf('//') === 0 ) { // の中の文字処理（最初の行を含む）
-      //      console.log('read data' + lineData[i]);
+      //      writeLog( 0, 'read data' + lineData[i]);
       if ((/^\/\/.*(opt:|button2speak config data:|speakpad config data:)(.*)/).test(lineData[i])) {
         scanIniText(lineData[i]);
-        // console.log('storeCSVdata lineData:' +i+' '+ lineData[i]);
+        // writeLog( 0, 'storeCSVdata lineData:' +i+' '+ lineData[i]);
       }
       continue;
     }
     const colData = lineData[i].split(',');
-//    console.log('colData:' + i.toString() + ':' + colData[1] + colData[2]+'\n')
+//    writeLog( 0, 'colData:' + i.toString() + ':' + colData[1] + colData[2]+'\n')
       if ((/^ *>>.*/).test(colData[0])) {      //   画面行のアイコン >>の後ろにコメントを入れられる
         // 画面行の処理
-//        console.log('storeCSVdata screen:' + colData[0]);
+//        writeLog( 0, 'storeCSVdata screen:' + colData[0]);
         if (colData.length <= 1){Alert.alert('スキップ','data err:1: title data '+ i.toString()); continue}
         colData[1].trim()
         var regStr = new RegExp(/([0-9])+/) // 　'Scrn1-Scrn20'
@@ -266,11 +290,11 @@ export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
 //        pgObj[curPgNum].pgTitle = '' //   既存ならタイトルそのまま　>>,12 の場合
         if( iniObj.clearOnRead ) { pgObj[curPgNum].btnList.splice(0) } //　ボタンデータを画面単位でクリア
         if((/^ *>>R.*/).test(colData[0])) { 
-          // console.log('storeCSVdata Screen Replace:' + colData[0]);
+          // writeLog( 0, 'storeCSVdata Screen Replace:' + colData[0]);
           pgObj[curPgNum].btnList.splice(0) } //　>>R　で　ボタンデータを画面単位でクリア
         if (colData.length >= 3 ) {
           pgObj[curPgNum].pgTitle = colData[2].trim()
-  //        console.log('pg:' + curPgNum.toString() + ':' + pgObj[curPgNum].pgTitle);
+  //        writeLog( 0, 'pg:' + curPgNum.toString() + ':' + pgObj[curPgNum].pgTitle);
           lineCount++ } //    画面タイトルセット
           if (colData.length >= 4 ) {
             pgObj[curPgNum].pgOption = colData[3].trim()} //画面オプションセット
@@ -285,7 +309,7 @@ export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
         if (regStr2.test(colData[2])) { colData[2] = colData[2].replace(regStr2, '$1')}  // +（互換性維持）
         if (colData[1] === 'url') { colData[1] = colData[2]; colData[2] = 'url'}         // +（互換性維持）
         if (colData.length < 4) { colData[3] = '' }
-        let defSeq = pgObj[curPgNum].btnList.length;
+        let defSeq = pgObj[curPgNum].btnList.length*10;
         if (colData.length > 4) { defSeq = parseInt(colData[4])}
         let usedDt = 0;
         if (colData.length > 5) { usedDt = parseInt(colData[5])} 
@@ -293,7 +317,7 @@ export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
         let numUsed = 0;
         if (colData.length > 6) { numUsed = parseInt(colData[6])}
         if (numUsed === 0) {usedDt = 999 - defSeq}
-  //      console.log(colData);
+  //      writeLog( 0, colData);
         pgObj[curPgNum].btnList.push({moji: colData[0].trim(), speak: colData[1].trim(),
           tugi: colData[2].trim(), option: colData[3].trim(), defSeq: defSeq, usedDt:usedDt, numUsed: numUsed})
         lineCount++
@@ -308,6 +332,7 @@ export function storeCSVdata(csvBuff:string, scnNum:number){ // 頁毎に置換
 }
 
 export function makeLink(scnNum:number){ // make link to unliked page
+  writeLog( 0, 'makeLink:' );
   let linkCount = 0
   let linkList = [{linkNo:0, linkName:''}]
   linkList.splice(0)
@@ -325,11 +350,11 @@ export function makeLink(scnNum:number){ // make link to unliked page
       if ( i === linkList[j].linkNo ) { break } // j = 0 - len-1
     }
     if ( j >= linkList.length) {  // not break リストにこの画面なし
-      const lastSeq = pgObj[scnNum].btnList.length;
+      const lastSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq),0)+10;
       if(pgObj[i].pgTitle !== '' ) {
         pgObj[scnNum].btnList.push({ moji:pgObj[i].pgTitle , speak:'na', 
           tugi: i.toString(), option:'', defSeq:lastSeq, usedDt:999-lastSeq, numUsed:999-lastSeq });
-        // console.log('makeLInk: added ' + i);
+        // writeLog( 0, 'makeLInk: added ' + i);
         linkCount++;
       } else if( pgObj[i].btnList.length > 0 ) {
         pgObj[scnNum].btnList.push({ moji:'画面' + i.toString() , speak:'na', 
@@ -347,12 +372,13 @@ export function makeLink(scnNum:number){ // make link to unliked page
 }
 
 export function removeDup(scnNum:number){
+  writeLog( 1, 'removeDup:' + scnNum );
   // remove blank if exist
   let regStr = new RegExp(/^[0-9]+$/)
   for (let i = 0 ; i < pgObj[scnNum].btnList.length; i++){
-    //        console.log('texts:' + i.toString() + ';' +pgObj[scnNum].btnList.length);
+    //        writeLog( 0, 'texts:' + i.toString() + ';' +pgObj[scnNum].btnList.length);
     if (pgObj[scnNum].btnList[i] === undefined) { 
-      console.log('removeDup: reduce error'); }
+      writeLog( 0, 'removeDup: reduce error'); }
     if (pgObj[scnNum].btnList[i].moji === '') { 
       pgObj[scnNum].btnList.splice(i,1)
       i--
@@ -361,12 +387,13 @@ export function removeDup(scnNum:number){
   const uniqueData = pgObj[scnNum].btnList.filter((item, index, self) => // remove duplicate 
     index === self.findIndex((t) => t.moji === item.moji && t.speak === item.speak && t.tugi === item.tugi ) );
   //pgObj[scnNum].btnList = {...uniqueData}
-  //console.log(JSON.stringify(uniqueData));
+  //writeLog( 0, JSON.stringify(uniqueData));
   pgObj[scnNum].btnList = JSON.parse(JSON.stringify(uniqueData));
 }
 
-export async function readIniObj() {
-  resetIniObj();
+export async function readIniObj() {  //設定読込み
+  writeLog( 0, 'readIniObj:' )
+  resetIniObj();  // 初期値を設定
   if (Platform.OS === 'web' ) { return null }
   let tmp = await FileSystem.getInfoAsync(iniObjPath);
   if (tmp.exists) {
@@ -377,15 +404,15 @@ export async function readIniObj() {
       for (let i=0; i < lineData.length; i++){
         scanIniText(lineData[i])
       }
-      // console.log('readIniObj:\n' + readText);
-      console.log('readIniObj:' );
+      // writeLog( 1, 'readIniObj:\n' + readText);
+      writeLog( 0, 'readIniObj:');
       return
       } catch (e) {
-      console.log(e);
-      console.log('readIniObj Error:' + iniObjPath + '\n');
+      writeLog( 0, e);
+      writeLog( 0, 'readIniObj Error:' + iniObjPath + '\n');
     }
   } else {
-    console.log('readIniObj: not exist');
+    writeLog( 1, 'readIniObj: not exist');
   }
 }
 
@@ -418,11 +445,15 @@ function scanIniText(inText:string){
   if (matchText !== null && matchText[2] !== '') { iniObj.replayScrnHold = (matchText[2]==='true')? true : false }
   matchText = inText.match(/.*(sort):(.+?)(\s+.*|$)/)
   if (matchText !== null && matchText[2] !== '') { iniObj.defaultSortType = matchText[2] }
-  matchText = inText.match(/.*(rbh):(\d+?)(\s+.*|$)/)
+  matchText = inText.match(/.*(rbh):(.+?)(\s+.*|$)/)
   if (matchText !== null && matchText[2] !== '') { iniObj.removeButtonHistory = (matchText[2]==='true')? true : false }  
-}
+  matchText = inText.match(/.*(wlf):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.writeLogFile = (matchText[2]==='true')? true : false }  
+  matchText = inText.match(/.*(llv):(\d+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.logLevel = parseInt(matchText[2]) }}
 
 export const writeIniObj = async () => {
+  writeLog( 0, 'writeIniObj:' )
   if (Platform.OS === 'web' ) { return }
   try{
     let writeText = ''
@@ -441,30 +472,33 @@ export const writeIniObj = async () => {
     + 'rsh:' + iniObj.replayScrnHold.toString() + '\n'
     + 'sort:' + iniObj.defaultSortType + '\n'
     + 'rbh:' + iniObj.removeButtonHistory.toString() + '\n'
+    + 'wlf:' + iniObj.writeLogFile.toString() + '\n'
+    + 'llv:' + iniObj.logLevel.toString() + '\n'
     await FileSystem.writeAsStringAsync(iniObjPath, writeText, {
       encoding: FileSystem.EncodingType.UTF8, });
-    // console.log('writeIniObj:\n' + writeText );
-    console.log('writeIniObj:' );
+    // writeLog( 0, 'writeIniObj:\n' + writeText );
   } catch (e) {
-    console.log(e);
-    console.log('writeIniObj Error:' + iniObjPath );
+    writeLog( 0, e);
+    writeLog( 0, 'writeIniObj Error:' + iniObjPath );
   }
 }
 
 export const writeFreeText = async () => {
+  writeLog( 0, 'writeFreeText:' )
   if (Platform.OS === 'web' ) { return }
   try{
     const writeText = JSON.stringify(freeText)
     await FileSystem.writeAsStringAsync(freeTextPath, writeText, {
       encoding: FileSystem.EncodingType.UTF8, });
-      console.log('writeFreeText:' );
+      writeLog( 1, 'writeFreeText 2:' );
   } catch (e) {
-    console.log(e);
-    console.log('writeFreeText Error:' + freeTextPath + '\n');
+    writeLog( 0, e);
+    writeLog( 0, 'writeFreeText Error:' + freeTextPath + '\n');
   }
 }
 
 export async function readFreeText() {
+  writeLog( 0, 'readFreeText:' )
   if (Platform.OS === 'web' ) { return null }
   let tmp = await FileSystem.getInfoAsync(freeTextPath);
   if (tmp.exists) {
@@ -472,21 +506,21 @@ export async function readFreeText() {
       const readText = await FileSystem.readAsStringAsync(freeTextPath, {
         encoding: FileSystem.EncodingType.UTF8, });
       freeText = JSON.parse(readText);
-      console.log('readFreeText:');
+      writeLog( 1, 'readFreeText 2:');
       return
       } catch (e) {
-      console.log(e);
-      console.log('readFreeText Error:' + freeTextPath + '\n');
+      writeLog( 0, e);
+      writeLog( 0, 'readFreeText Error:' + freeTextPath + '\n');
     }
   } else {
-    // console.log('readFreeText: not exist');
+    // writeLog( 0, 'readFreeText: not exist');
   }
 }
 
 export function findButtonWidth(scrn:number){
   let cols = 2
   let matchText = pgObj[scrn].pgOption.match(/.*(\d)col|col:(\d)(\s.*|$)/)
-  // console.log('match:' + matchText);
+  // writeLog( 0, 'match:' + matchText);
   if (matchText !== null) {
     if (matchText[1] !== undefined && matchText[1] !== null) {
      cols = parseInt(matchText[1])
@@ -494,38 +528,43 @@ export function findButtonWidth(scrn:number){
       cols = parseInt(matchText[2])
     }
   }
-  // console.log('cols:' + cols);
+  // writeLog( 0, 'cols:' + cols);
   if (cols < 1) cols = 2;
   if (cols > 5) cols = 5;
   const width = Dimensions.get('window').width / cols - 5 ;
-  // console.log(('width:' + width));
+  // writeLog( 0, ('width:' + width));
   // buttonWidth = width;
   return width;
 }
 
 export function findButtonHeight(scrn:number){
-  let buttonHeight = 80;
-  let numRow = 6;
-  let matchText = pgObj[scrn].pgOption.match(/.*(row):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== undefined && matchText[2] !== null) {
-    numRow = parseInt(matchText[2]);
-    if (numRow < 1) {numRow = 1}
-    buttonHeight =(Dimensions.get('window').height - 60)/ (numRow + 1) - 8; // row指定の場合の高さ
+  let buttonHeight:number;
+  let numRow = 5;   // デフォルト値
+  const windwHight = Dimensions.get('window').height;
+  let matchText2 = pgObj[scrn].pgOption.match(/.*(sbh):(.+?)(\s+.*|$)/);
+  if (matchText2 !== null && matchText2[2] !== undefined && matchText2[2] !== null) {
+      buttonHeight = parseInt(matchText2[2]);  // sbh指定（高さ値）の場合
   } else {
-      let matchText2 = pgObj[scrn].pgOption.match(/.*(sbh):(.+?)(\s+.*|$)/);
-      if (matchText2 !== null && matchText2[2] !== undefined && matchText2[2] !== null) {
-          buttonHeight = parseInt(matchText2[2]);  // sbh指定（高さ値）の場合
-      }
+    let matchText = pgObj[scrn].pgOption.match(/.*(row):(.+?)(\s+.*|$)/)
+    if (matchText !== null && matchText[2] !== undefined && matchText[2] !== null) {
+      let numRow = parseInt(matchText[2]);
+      if (numRow < 1) {numRow = 1}
+    }
+    buttonHeight =(windwHight - 60)/ (numRow + 1) - 8; // row指定の場合の高さ
   }
   if (buttonHeight < 40) buttonHeight = 40
-//  if (buttonHeight > 700) buttonHeight = 700
+  if (buttonHeight > windwHight-100 ) buttonHeight = windwHight-100
   return buttonHeight
+}
+
+export function findBottmHeight(scrn:number){
+  return Dimensions.get('window').height/8;
 }
 
 export function findFontSize(scrn:number, leng:number){ // scrn: current screen number, leng:文字の長さ
   let fontSize = 25;
   let matchText = pgObj[scrn].pgOption.match(/.*(sfs):(.+?)(\s+.*|$)/)
-  // console.log('match:' + matchText);
+  // writeLog( 0, 'match:' + matchText);
   if (matchText !== null && matchText[2] !== undefined && matchText[2] !== null) {
       fontSize = parseInt(matchText[2])
   } else {
@@ -534,16 +573,16 @@ export function findFontSize(scrn:number, leng:number){ // scrn: current screen 
   if (leng > findButtonWidth(scrn)/15 ) fontSize -= 6;
   if (fontSize < 16) fontSize = 16
   if (fontSize > 50) fontSize = 50
-  // console.log('Font:' + fontSize);
+  // writeLog( 0, 'Font:' + fontSize);
   return fontSize
 }
 
 export  function buttonSort(scnNum:number){
-    // console.log(pgObj[scnNum].pgOption);
+    // writeLog( 0, 'buttonSort:'+pgObj[scnNum].pgOption);
     if  ((/.*sort:dat.*/).test(pgObj[scnNum].pgOption) ){
       pgObj[scnNum].btnList.sort((a,b) => (a.usedDt < b.usedDt)? 1: -1);    //使用日時順
     } else if  ((/.*sort:cnt.*/).test(pgObj[scnNum].pgOption) ){
-      // console.log('sort:cnt');
+      // writeLog( 0, 'sort:cnt');
       pgObj[scnNum].btnList.sort((a,b) => (a.numUsed-a.defSeq < b.numUsed-b.defSeq)? 1: -1); //頻度順
     } else if ((/.*sort:def.*/).test(pgObj[scnNum].pgOption) || iniObj.defaultSortType === 'def'){
       pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1);  //定義順

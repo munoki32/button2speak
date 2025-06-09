@@ -3,7 +3,7 @@ import { Modal, Platform, KeyboardAvoidingView, Pressable, ScrollView, Dimension
 import { useRouter, Stack, useLocalSearchParams  } from 'expo-router';
 import { SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { useState } from 'react';
-import {  writeFile, pgObj, removeDup, iniObj} from './comFunc'
+import {  writeFile, pgObj, removeDup, iniObj, writeLog} from './comFunc'
 import GestureRecognizer from 'react-native-swipe-gestures';
 import { styles } from './index';
 
@@ -19,11 +19,11 @@ export default function configText(){
   if (post) {
     scnNum = Number(post);
   } else {
-    console.log('Err: configText No post number');
+    writeLog( 0, 'Err: configText No post number');
     scnNum = 0;
   };
   const numInput = 6;
-//  console.log('5: configText flat');
+//  writeLog( 0, '5: configText flat');
 //  init tempObj & copy form pgObj
   tempObj.pgTitle = pgObj[scnNum].pgTitle
   tempObj.pgOption = pgObj[scnNum].pgOption
@@ -43,7 +43,7 @@ export default function configText(){
       tempObj.btnList.push({ moji:'', speak:'', tugi:'', option:'', defSeq:'' })
     }
   }
-//  console.log('1:'+ offSet.toString() + ':' + tempObj.btnList.length.toString());
+//  writeLog( 0, '1:'+ offSet.toString() + ':' + tempObj.btnList.length.toString());
   
   const [pgTitle, setTitle] = useState(tempObj.pgTitle);
   const [pgOption, setPgOption] = useState(tempObj.pgOption);
@@ -70,23 +70,24 @@ export default function configText(){
       pgObj[scnNum].btnList[i+offSet].option = btnList[i].option.trim();
       pgObj[scnNum].btnList[i+offSet].defSeq = parseInt(btnList[i].defSeq);
     }
-//    console.log('onSave:'+offSet.toString() + ':' + tempObj.btnList.length.toString() + ':' + numConf.toString());
+//    writeLog( 0, 'onSave:'+offSet.toString() + ':' + tempObj.btnList.length.toString() + ':' + numConf.toString());
 if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.length ) {  // last screen? (offset+5: last entry of screen)
       removeDup(scnNum)
       writeFile();
-      router.dismissTo({ pathname: "/configScrn", params: {post: scnNum }, });
+      router.dismissTo({ pathname: "/configApp", params: {post: scnNum }, });
     } else {
       if (offSet + numInput*2 > tempObj.btnList.length) {  //頁追加
-//        console.log('add ' + offSet.toString() + ' len ' + tempObj.btnList.length.toString());
+//        writeLog( 0, 'add ' + offSet.toString() + ' len ' + tempObj.btnList.length.toString());
         for (let i = 0 ; i < numInput; i++) {
           tempObj.btnList.push({moji:'', speak:'', tugi:'', option:'', defSeq:''})
         }
       }
       setBtnList(tempObj.btnList.slice(offSet+numInput, offSet+numInput*2))
-//      console.log('nextBtnList' + JSON.stringify(btnList));
+//      writeLog( 0, 'nextBtnList' + JSON.stringify(btnList));
       setOffSet(offSet + numInput)
     }
   }
+
   function onChangeMoji(text:string, index:number){
     btnList[index].moji = text
     setBtnList([...btnList])
@@ -113,10 +114,11 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
 //    isClickThreshold: 5,
   };
   function onSwipeLeft(){
-//    console.log('left');
-  setModalVisible(true) 
+//    writeLog( 0, 'left');
+    setModalVisible(true) 
   }
   function onSwipeRight(){
+    writeFile();
     setModalVisible(false) 
   }
   return (
@@ -153,7 +155,8 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
         visible={modalVisible} >
         <View style={[stylesConfText.container, {backgroundColor:styles.container.backgroundColor, marginTop: 56}]}>
           <Text style={{ paddingTop:5, fontSize:14, width:'30%' }}> {pgTitle} </Text>
-          <TextInput style={[stylesConfText.pgOpt, {width:'66%'}]} onChangeText={setPgOption} value={pgOption} /> 
+          <TextInput style={[stylesConfText.pgOpt, {width:'66%'}]} onChangeText={setPgOption} 
+            value={pgOption}  autoFocus={true} /> 
           <Text style={{width:'30%'}}>表示</Text>
           <Text style={{width:'56%'}}>オプション</Text>
           <Text style={{width:'10%'}}>順序</Text>
@@ -168,7 +171,7 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
             </View>
           )}
           <View>
-            <TouchableHighlight onPress={() => setModalVisible(false) } >
+            <TouchableHighlight onPress={() => onSwipeRight() } >
               <View style={[stylesConfText.button, {backgroundColor:iniObj.controlButtonColor, width:100}]}>
                 <Text>＜戻る</Text>
               </View>
@@ -177,7 +180,7 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
         </View>
       </Modal>
       <Text style={{ paddingTop:5, fontSize:14 }}>タイトル</Text> 
-      <TextInput style={stylesConfText.pgTitle} onChangeText={setTitle} value={pgTitle} />
+      <TextInput style={stylesConfText.pgTitle} onChangeText={setTitle} value={pgTitle} autoFocus={true} />
       <Text style={{width:stylesConfText.moji.width}}>表示</Text>
       <Text style={{width:stylesConfText.speak.width}}>発音</Text>
       <Text style={{width:stylesConfText.link.width, fontSize:10}}>リンク</Text>

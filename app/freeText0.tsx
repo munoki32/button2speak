@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import * as Speech from 'expo-speech';
 import RNPickerSelect from 'react-native-picker-select';
 import * as FileSystem from 'expo-file-system';
-import { iniObj, speakStack, dispText, mojiStack, writeFreeText, freeText } from './comFunc';
+import { iniObj, speakStack, dispText, mojiStack, writeFreeText, freeText, writeLog } from './comFunc';
 import { Audio } from 'expo-av';
 import { styles } from './index';
 
@@ -24,15 +24,15 @@ export default function freeTextSpeak(){
   if (post) {
     scnNum = Number(post);
   } else {
-    console.log('Err: freeText No post number');
+    writeLog( 0, 'Err: freeText No post number');
     scnNum = 0;
   };
   if (from) { 
-    // console.log('freeText: from ' + from );
+    // writeLog( 0, 'freeText: from ' + from );
   }
   
   function onPressSay(){ 
-//    console.log(text0 + '\n')
+//    writeLog( 0, text0 + '\n')
     if (textInput !== '') {
       dispText.splice(0)
       if (iniObj.textOnSpeak) { 
@@ -52,10 +52,10 @@ export default function freeTextSpeak(){
         mojiStack.push(textInput)
       }
       if (freeText.findIndex(text => text.value === textInput) === -1) { //同じ内容は記録しない
-        // console.log('onPressSay:' + textInput);
+        // writeLog( 0, 'onPressSay:' + textInput);
         // freeText.push({ key:Math.max(...freeText.map(item => item.key))+1, label:textInput, value:textInput});
         freeText.push({ key:freeText.length, label:textInput, value:textInput});
-        // console.log('onPressSay:' + freeText[freeText.length-1].label + freeText.length);
+        // writeLog( 0, 'onPressSay:' + freeText[freeText.length-1].label + freeText.length);
         writeFreeText();
       }
       if (iniObj.freeTextClear) {
@@ -63,7 +63,7 @@ export default function freeTextSpeak(){
         setSelectValue('');
       }
     }
-//    console.log('freeText:' + iniObj.speakText + '\n')
+//    writeLog( 0, 'freeText:' + iniObj.speakText + '\n')
   }
 
   function onPressDel(){
@@ -79,7 +79,7 @@ export default function freeTextSpeak(){
   }
 
   function onPressDelItem(){
-    console.log('onPressDelItem' + selectValue);
+    writeLog( 0, 'onPressDelItem' + selectValue);
     const itemIndex = freeText.findIndex(text => text.value === textInput)
     if (itemIndex > -1) {freeText.splice(itemIndex,1);}
     setSelectValue('')
@@ -130,7 +130,7 @@ export default function freeTextSpeak(){
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable onPressIn={() => {
-                  router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'freeText' } });
+                  router.push({ pathname: "/configApp", params: { post: scnNum, from: 'freeText' } });
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
                 <Text style={{textAlign:'center' }}>設定</Text>
