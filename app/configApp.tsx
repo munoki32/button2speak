@@ -1,18 +1,23 @@
-import React from 'react';
-import { useState } from 'react';
-import { Switch, Pressable, Dimensions, StyleSheet, Platform, ScrollView, Button,
-   Text, TouchableHighlight, View, Alert,  } from 'react-native';
-import { reloadAppAsync } from "expo";
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useRouter, Stack, useLocalSearchParams, useFocusEffect   } from 'expo-router';
-import  { pgObj, pgObjPath, pgObjPathOld, freeTextPath, writeFile, shareFile, shareLog,
-  copyToClipboard, initData, iniObj, storeCSVdata, iniObjPath, pgStack, writeLog, } from './comFunc';
 import Slider from '@react-native-community/slider';
-import { VolumeManager } from 'react-native-volume-manager';
-import { orgVol, styles, } from './index';
+import { reloadAppAsync } from "expo";
 import * as Clipboard from 'expo-clipboard';
-import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet, Switch,
+  Text, TouchableHighlight, View
+} from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { VolumeManager } from 'react-native-volume-manager';
+import {
+  copyToClipboard, freeTextPath, iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
+  pgStack, shareFile, shareLog, storeCSVdata, writeFile, writeLog,
+} from './comFunc';
+import { orgVol, styles, } from './index';
+
+// export let customerInfo:any;
 
 export default function configApp(){
   
@@ -197,7 +202,7 @@ export default function configApp(){
               readOldFile()
               reloadAppAsync();
             }}, ])}} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-7} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>定義を前に戻す</Text>
           </View>
         </TouchableHighlight>
@@ -209,15 +214,22 @@ export default function configApp(){
             restoreInit();
             // reloadAppAsync();
           }}, ])}} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-7} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>初期化する</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onLongPress={ ()  => { 
           reloadAppAsync();
           }} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-7} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>再起動</Text>
+          </View>
+        </TouchableHighlight>
+        <TouchableHighlight onPress={ ()  => { 
+          router.push({ pathname: "/payWall", params: { post: scnNum, from: 'configApp' } });
+          }} >
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
+            <Text style={[stylAppConf.text, {color: 'red'}]}>応援</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ () => {
@@ -299,7 +311,7 @@ export default function configApp(){
           }} >
           <View style={[stylAppConf.button, {width:Dimensions.get('window').width, 
             backgroundColor:stylAppConf.bottomButton.backgroundColor}]}>
-            <Text style={[stylAppConf.text]}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」設定へ</Text>
+            <Text style={[stylAppConf.text]}>画面「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」の設定へ</Text>
           </View>
         </TouchableHighlight>
 
@@ -383,7 +395,7 @@ export default function configApp(){
                   iniObj.myVol = sliderValue;
                   onSlider(sliderValue)} }
             />
-            <Switch style={stylAppConf.switch}
+            <Switch style={[stylAppConf.switch, {paddingTop:20}]}
               disabled={!changeVol}
               onValueChange = {()=> {
                 setuseSlide(!useSlide);
@@ -472,7 +484,7 @@ export const stylAppConf = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     height: 60,   // スイッチの間隔が変わる
-    // paddingTop: Platform.OS === 'ios' ? -10: 5 ,
+    // paddingTop: Platform.OS === 'ios' ? -40: 0 ,
   },
   switchText:{
     width: Dimensions.get('window').width - 100, 
@@ -480,6 +492,7 @@ export const stylAppConf = StyleSheet.create({
     textAlignVertical: 'center',
     height: 60,
     fontSize: 18,
+    paddingTop: 7,
   },
 });
 

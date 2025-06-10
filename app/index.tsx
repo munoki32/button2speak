@@ -7,41 +7,17 @@ import * as Speech from 'expo-speech';
 import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  AppState,
-  BackHandler,
-  Dimensions,
-  Linking,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text, TouchableHighlight,
-  useWindowDimensions,
-  View
+  Alert, AppState, BackHandler, Dimensions, Linking, Modal, Platform, Pressable,
+  ScrollView, StatusBar, StyleSheet, Text, TouchableHighlight, useWindowDimensions, View
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import { VolumeManager } from 'react-native-volume-manager';
 import {
-  buttonSort,
-  dispText,
-  findBottmHeight,
-  findButtonHeight,
-  findButtonWidth,
-  findFontSize,
-  iniObj,
-  mojiStack,
-  pgObj,
-  pgStack,
-  readInitialFile,
-  speakStack,
-  writeFile,
-  writeLog
+  buttonSort, dispText, findBottmHeight, findButtonHeight, findButtonWidth,
+  findFontSize, iniObj, mojiStack, pgObj, pgStack, readInitialFile, speakStack,
+  writeFile, writeLog
 } from './comFunc';
-
 
 SplashScreen.preventAutoHideAsync();
 export let orgVol = 0 // save system volume level
@@ -55,9 +31,12 @@ export default function index(){
   const { height, width } = useWindowDimensions();
   const isPortrait = height >= width;
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-    
+  
   useEffect(() => {  // only once after 1st rendering
-    readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
+      // if (Platform.OS === 'ios') {
+      //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+      // }
+      readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
       setScnNum(0);    // 画面をホームセット
       router.dismissTo('/'); //これをしないと初画面がブランク
 //      writeLog( 0, 'AppStartmyVol' + iniObj.myVol.toString());
