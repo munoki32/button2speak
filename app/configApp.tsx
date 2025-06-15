@@ -7,7 +7,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet, Switch,
-  Text, TouchableHighlight, View
+  Text,
+  TouchableHighlight, View
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { VolumeManager } from 'react-native-volume-manager';
@@ -17,14 +18,11 @@ import {
 } from './comFunc';
 import { orgVol, styles, } from './index';
 
-// export let customerInfo:any;
-
 export default function configApp(){
   
   // const [clearOnRead, setClearOnRead] = useState(iniObj.clearOnRead)   
   // const [addFreeStack, setAddFreeStack] = useState(iniObj.addFreeStack)
   // const [btn3col, setBtn3col] = useState(iniObj.btn3col)
-  const [freeTextClear, setfreeTextClear] = useState(iniObj.freeTextClear)
   const [textOnSpeak, setTextOnSpeak] = useState(iniObj.textOnSpeak)
   const [modalRotae, setModalRotate] = useState(iniObj.modalTextRotate)
   const [changeVol, setChangeVol] = useState(iniObj.changeVol)
@@ -134,7 +132,6 @@ export default function configApp(){
   
   function applyConfiSetting(){
     writeLog( 0, 'applyConfig:');
-    setfreeTextClear(iniObj.freeTextClear);
     // setAddFreeStack(iniObj.addFreeStack);
     // setBtn3col(iniObj.btn3col);
     setTextOnSpeak(iniObj.textOnSpeak);
@@ -226,8 +223,11 @@ export default function configApp(){
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ ()  => { 
-          router.push({ pathname: "/payWall", params: { post: scnNum, from: 'configApp' } });
-          }} >
+            router.push({ pathname: "/configPay", params: { post: scnNum, from: 'configApp' } });
+          }} 
+          onLongPress={ () => {
+            router.push({ pathname: "/payWall", params: { post: scnNum, from: 'configApp' } });
+          }}>
           <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>応援</Text>
           </View>
@@ -316,14 +316,6 @@ export default function configApp(){
         </TouchableHighlight>
 
         <View style={stylAppConf.switchContainer} >
-
-          <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
-            <Text style={stylAppConf.switchText}>フリーテキストは発声後クリア</Text>
-          </TouchableHighlight>
-          <Switch style={stylAppConf.switch}
-            onValueChange = {()=> {setfreeTextClear(!freeTextClear);
-              iniObj.freeTextClear = !freeTextClear; }} 
-            value = {freeTextClear} />
 
           <TouchableHighlight onPress={ () => { setTextOnSpeak(!textOnSpeak) }}>
             <Text style={stylAppConf.switchText}>発声時に文字を表示する</Text>
@@ -493,6 +485,14 @@ export const stylAppConf = StyleSheet.create({
     height: 60,
     fontSize: 18,
     paddingTop: 7,
+  },
+  textInput: {
+    width: 100,
+    height: 40,
+    borderWidth: 0.5,
+    paddingLeft: 5,
+    fontSize: 18,
+    marginTop:10,
   },
 });
 

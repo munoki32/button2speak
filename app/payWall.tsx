@@ -6,9 +6,7 @@ import RevenueCatUI from 'react-native-purchases-ui';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { writeLog } from './comFunc';
 import { styles } from './index';
-export let customerInfo:any;
 
-// export let customerInfo:any;
 export default function payWall(){
 
     useEffect(() => {  // only once after 1st rendering
@@ -16,22 +14,11 @@ export default function payWall(){
         Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
       }
       if (Platform.OS === 'ios') {
-        Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
+        Purchases.configure({apiKey: 'appl_jdpXVGjdWJBVuRGkicsZOXBmPXv' });
       } else if (Platform.OS === 'android') {
         // Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
       } 
-      if (Platform.OS === 'ios'){  try {
-          customerInfo =  Purchases.getCustomerInfo();
-          // access latest customerInfo
-          writeLog( 0, 'get cutomer Info:' + customerInfo)
-        } catch (e) {
-        // Error fetching customer info
-          writeLog( 0, 'get cutomerInfo Error' + e )
-        }
-      }
-
     }, []);
-  
   
 	const router = useRouter();
   const { post, from } = useLocalSearchParams();
@@ -44,7 +31,7 @@ export default function payWall(){
   };
 // Display current offering
 return (
-   <SafeAreaProvider>
+  <SafeAreaProvider>
 		<Stack.Screen options={{
 		title: '応援', 
     headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
@@ -68,10 +55,11 @@ return (
           onDismiss={() => {
             // Dismiss the paywall, i.e. remove the view, navigate to another screen, etc.
             // Will be called when the close button is pressed (if enabled) or when a purchase succeeds.
-			router.back();
+            writeLog(0, 'Paywall onDismiss:')
+			      router.back();
           }}
         />
     </View>
-    </SafeAreaProvider>
+  </SafeAreaProvider>
 );
 }

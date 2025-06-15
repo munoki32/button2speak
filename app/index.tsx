@@ -10,6 +10,7 @@ import {
   Alert, AppState, BackHandler, Dimensions, Linking, Modal, Platform, Pressable,
   ScrollView, StatusBar, StyleSheet, Text, TouchableHighlight, useWindowDimensions, View
 } from 'react-native';
+// import Purchases from 'react-native-purchases';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import { VolumeManager } from 'react-native-volume-manager';
@@ -33,9 +34,6 @@ export default function index(){
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   
   useEffect(() => {  // only once after 1st rendering
-      // if (Platform.OS === 'ios') {
-      //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-      // }
       readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
       setScnNum(0);    // 画面をホームセット
       router.dismissTo('/'); //これをしないと初画面がブランク
@@ -53,7 +51,7 @@ export default function index(){
     }, 2000);
   }, []);
 
-  useFocusEffect(
+  useFocusEffect(  // バックハンドラーを設定
     useCallback(() => {
       const onBackPress = () => {
         pgBack();
@@ -79,9 +77,6 @@ export default function index(){
         writeLog( 0, 'Active:' + orgVol.toString())
         saveVol()
         aquireAudio(); // for android
-        // if (iniObj.changeVol) {
-        //   setVol(iniObj.myVol)
-        // }
       } else {
         writeLog( 0, 'Deactive:'+orgVol.toString())
         if (iniObj.changeVol) {
@@ -91,8 +86,6 @@ export default function index(){
         VolumeManager.setActive(false, true) // ios OK release audio
         releaseAudio(); // for android
         writeFile();
-        // writeIniObj();
-//        writeFreeText();
       }
     });
     return () => {
@@ -414,7 +407,7 @@ async function setVol(vol:number) {
               <TouchableHighlight onLongPress={() => {router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } })} }>
                 <View style={[styles.button, {backgroundColor:styles.container.backgroundColor, borderWidth:0, 
                   width:Dimensions.get('window').width, height: styles.button.height*2, justifyContent:'flex-start' }]} >
-                  <Text style={{textAlign:'center', color:'#d3d3d3'}}>ボタン追加</Text>
+                  <Text style={{textAlign:'center', color:'#d3d3d3'}}>ボタン追加/編集</Text>
                 </View>
               </TouchableHighlight>
           </View>

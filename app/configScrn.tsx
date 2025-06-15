@@ -1,16 +1,21 @@
-import React from 'react';
-import { useState } from 'react';
-import { Switch, Pressable, Dimensions, StyleSheet, Platform, ScrollView, 
-   Text, TouchableHighlight, View, Alert,TextInput  } from 'react-native';
 import { reloadAppAsync } from "expo";
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useRouter, Stack, useLocalSearchParams, useFocusEffect   } from 'expo-router';
-import { makeLink, pgObj, writeFile, freeText,  removeDup,  writeLog} from './comFunc';
-import { freeTextScn  } from './freeText';
-import { orgVol, styles, } from './index';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet,
+  Switch,
+  Text,
+  TextInput, TouchableHighlight, View
+} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { freeText, iniObj, makeLink, pgObj, removeDup, writeFile, writeLog } from './comFunc';
+import { freeTextScn } from './freeText';
+import { styles } from './index';
 
 export default function configScrn(){
+
+  const [freeTextClear, setfreeTextClear] = useState(iniObj.freeTextClear)
   
   const sortList = [ // ソートの選択リスト
     { label: '未設定', value: 'non' }, { label: '定義順', value: 'def' },
@@ -187,7 +192,7 @@ export default function configScrn(){
           >
           <View style={[stylScrnConf.button,{width: Dimensions.get('window').width,
             backgroundColor:stylScrnConf.bottomButton.backgroundColor} ]}>
-              <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」ボタン編集へ</Text> 
+              <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」ボタン追加/編集へ</Text> 
           </View>
         </TouchableHighlight>
         : <View style={[stylScrnConf.button,{width: Dimensions.get('window').width, borderWidth:0,
@@ -284,7 +289,13 @@ export default function configScrn(){
             value={pageCol}
             />
           <Text style={[stylScrnConf.switchText,]}>この画面の列数</Text>
+          { scnNum !== freeTextScn? 
+            <View></View>
+          :
+            <ClearFree/>
+          }
         </View>
+
       </View>
     </ScrollView>
     <TouchableHighlight onPress={ ()  => { pgBack() }} >
@@ -294,8 +305,23 @@ export default function configScrn(){
     </TouchableHighlight>
   </SafeAreaProvider>
   );
+
+function ClearFree(){
+
+  return(
+          <View style={stylScrnConf.switchContainer} >
+            <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
+              <Text style={[stylScrnConf.switchText, {width:250, paddingTop:15}]}>フリーテキストは発声後クリア</Text>
+            </TouchableHighlight>
+            <Switch style={stylScrnConf.switch}
+              onValueChange = {()=> {setfreeTextClear(!freeTextClear);
+                iniObj.freeTextClear = !freeTextClear; }} 
+              value = {freeTextClear} />
+          </View>
+        )
 }
 
+}
 export const stylScrnConf = StyleSheet.create({
   slider: {
     width: 300,
@@ -357,6 +383,12 @@ export const stylScrnConf = StyleSheet.create({
     height: 40,
     fontSize: 18,
     marginTop:Platform.OS === 'ios'?  -37: -48,
+  },
+    switch: {
+    marginLeft: 10,
+    marginRight: 10,
+    height: 60,   // スイッチの間隔が変わる
+    // paddingTop: Platform.OS === 'ios' ? -40: 0 ,
   },
     textInput: {
     width: Dimensions.get('window').width-100,

@@ -1,16 +1,38 @@
-import React from 'react';
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { Modal, StatusBar, BackHandler, Pressable, Dimensions, StyleSheet, useWindowDimensions,
-  AppState, Text, TouchableHighlight, View, ScrollView, Linking, Alert, TextInput, 
-  KeyboardAvoidingView} from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useRouter, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import * as Speech from 'expo-speech';
-import { pgObj, iniObj, writeFile, dispText, speakStack, mojiStack, findBottmHeight,
-  findButtonWidth, findButtonHeight, findFontSize, buttonSort, writeLog } from './comFunc'
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useIsFocused } from '@react-navigation/native';
 import { reloadAppAsync } from "expo";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Modal,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableHighlight,
+  useWindowDimensions,
+  View
+} from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  buttonSort,
+  dispText,
+  findBottmHeight,
+  findButtonHeight,
+  findButtonWidth,
+  findFontSize,
+  iniObj,
+  mojiStack,
+  pgObj,
+  speakStack,
+  writeFile,
+  writeLog
+} from './comFunc';
 
 export let freeTextScn = 14;
 
@@ -151,20 +173,22 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     // }
     const isSame = pgObj[scnNum].btnList.findIndex(text => text.moji === textInput) 
     if (isSame === -1) { //同じ内容は記録しない
-      let nextDefSeq = pgObj[scnNum].btnList.length
-      if (pgObj[scnNum].btnList.length > 0) {
-        nextDefSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq),0)+10
-      } 
-    pgObj[scnNum].btnList.push({moji:textInput, speak:'', tugi:'', option:' ',
-       defSeq:nextDefSeq, usedDt:Date.now(), numUsed:1000 })
-      } else {
-        pgObj[scnNum].btnList[isSame].numUsed += 1000;
-        pgObj[scnNum].btnList[isSame].usedDt = Date.now();
-      }
-      if (iniObj.freeTextClear) {
-        setTextInput('');
-      }
-      setChangeScrn(!changeScrn);
+      // let nextDefSeq = pgObj[scnNum].btnList.length
+      // if (pgObj[scnNum].btnList.length > 0) {
+      //   nextDefSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq),0)+10
+      // } 
+      pgObj[scnNum].btnList.push({moji:textInput, speak:'', tugi:'', option:' ',
+        defSeq:-999, usedDt:Date.now(), numUsed:1000 })
+      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10)
+    } else {
+      pgObj[scnNum].btnList[isSame].numUsed += 1000;
+      pgObj[scnNum].btnList[isSame].usedDt = Date.now();
+    }
+    if (iniObj.freeTextClear) {
+      setTextInput('');
+    }
+    buttonSort(scnNum);  // 20250616 sort after say
+    setChangeScrn(!changeScrn);
   }
 
   function onPressClear(){
@@ -194,7 +218,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     <SafeAreaProvider>
       <SafeAreaView>
           <Stack.Screen options={{
-            title: scnNum === freeTextScn?'フリー':'ボタン追加' ,
+            title: scnNum === freeTextScn?'フリー':'ボタン追加/編集' ,
             headerTitleAlign: 'center',
             headerTitleStyle: { fontWeight:'bold', fontSize:( Dimensions.get('window').height < 1000 )? 25:40 },
             headerBackButtonDisplayMode:  'minimal' ,

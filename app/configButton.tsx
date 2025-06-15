@@ -1,14 +1,21 @@
-import React from 'react';
-import { ScrollView, Modal, Pressable, Dimensions, StyleSheet, Text, 
-  View, Button, TextInput, Alert, TouchableHighlight, Platform, useWindowDimensions } from 'react-native';
-import { useRouter, Stack, useLocalSearchParams,  } from 'expo-router';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import { Stack, useLocalSearchParams, useRouter, } from 'expo-router';
 import * as Speech from 'expo-speech';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet, Text,
+  TextInput,
+  TouchableHighlight,
+  useWindowDimensions,
+  View
+} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import * as FileSystem from 'expo-file-system';
-import { iniObj, speakStack, dispText, mojiStack, writeFreeText, freeText, pgObj, writeFile, writeLog } from './comFunc';
-import { Audio } from 'expo-av';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { iniObj, pgObj, writeFile, writeLog } from './comFunc';
 import { styles } from './index';
 
 export default function configButton(){
@@ -135,10 +142,10 @@ export default function configButton(){
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable onPressIn={() => {
-                  router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'configButton' } });
+                  router.push({ pathname: "/help", params: { post: scnNum } } );
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
-                <Text style={{textAlign:'center' }}>画面設定</Text>
+                <Text style={{textAlign:'center' }}>ヘルプ</Text>
               </View>
             </Pressable> 
           ),         

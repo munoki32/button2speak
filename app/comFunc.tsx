@@ -29,6 +29,7 @@ export let iniObj={
   removeButtonHistory: true,
   writeLogFile: false,
   logLevel: 0,
+  userId:'',
 }
 
 export const pgObjPath = FileSystem.documentDirectory + 'SpeakPad4.txt';
@@ -64,6 +65,7 @@ export function resetIniObj() {
     removeButtonHistory: true,
     writeLogFile: false, 
     logLevel: 0,
+    userId:'',
   }
 }
 
@@ -179,6 +181,7 @@ export function makeCVSdata(removeButtonHistory:boolean) {
   if ( iniObj.controlButtonColor !== '#ddff99' ) { csvBuff += ' cbc:' + iniObj.controlButtonColor }
   if ( iniObj.controlButtonBorder !== 'gray' ) { csvBuff += ' cbb:' + iniObj.controlButtonBorder }
   // if ( iniObj.defaultSortType !== 'def' ) { csvBuff += ' sort:' + iniObj.defaultSortType }
+  if ( iniObj.userId !== '' ) { csvBuff += ' uid:' + iniObj.userId }
   csvBuff += '\n'
   const d = new Date();    // Tue Apr 22 2025 23:46:00 GMT+0900 (日本標準時)
   csvBuff += '// saved ' + d + '\n'; // writeLog( 0, 'date:' + d);
@@ -450,7 +453,10 @@ function scanIniText(inText:string){
   matchText = inText.match(/.*(wlf):(.+?)(\s+.*|$)/)
   if (matchText !== null && matchText[2] !== '') { iniObj.writeLogFile = (matchText[2]==='true')? true : false }  
   matchText = inText.match(/.*(llv):(\d+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.logLevel = parseInt(matchText[2]) }}
+  if (matchText !== null && matchText[2] !== '') { iniObj.logLevel = parseInt(matchText[2]) }
+  matchText = inText.match(/.*(uid):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.userId = matchText[2] }
+}
 
 export const writeIniObj = async () => {
   writeLog( 0, 'writeIniObj:' )
@@ -474,6 +480,7 @@ export const writeIniObj = async () => {
     + 'rbh:' + iniObj.removeButtonHistory.toString() + '\n'
     + 'wlf:' + iniObj.writeLogFile.toString() + '\n'
     + 'llv:' + iniObj.logLevel.toString() + '\n'
+    // + 'uid:' + iniObj.userId + '\n'
     await FileSystem.writeAsStringAsync(iniObjPath, writeText, {
       encoding: FileSystem.EncodingType.UTF8, });
     // writeLog( 0, 'writeIniObj:\n' + writeText );
