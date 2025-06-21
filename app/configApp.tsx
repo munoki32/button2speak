@@ -7,10 +7,9 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet, Switch,
-  Text,
-  TouchableHighlight, View
+  Text, TouchableHighlight, View
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { VolumeManager } from 'react-native-volume-manager';
 import {
   copyToClipboard, freeTextPath, iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
@@ -18,27 +17,15 @@ import {
 } from './comFunc';
 import { orgVol, styles, } from './index';
 
-export default function configApp(){
-  
-  // const [clearOnRead, setClearOnRead] = useState(iniObj.clearOnRead)   
-  // const [addFreeStack, setAddFreeStack] = useState(iniObj.addFreeStack)
-  // const [btn3col, setBtn3col] = useState(iniObj.btn3col)
+export default function configApp(){ //全体の設定
+
   const [textOnSpeak, setTextOnSpeak] = useState(iniObj.textOnSpeak)
   const [modalRotae, setModalRotate] = useState(iniObj.modalTextRotate)
   const [changeVol, setChangeVol] = useState(iniObj.changeVol)
   const [useSlide, setuseSlide] = useState(false)
   const [changeScrn, setChangeScrn] = useState(true)
   const [replayScrnHold, setReplayScrnHold] = useState(iniObj.replayScrnHold)
-  const [removeButtonHistory, setRemoveButtonHistory] = useState(iniObj.removeButtonHistory)
-  const [selectedSort, setSelectedSort] = useState(iniObj.defaultSortType)
   const [writeLogFile, setWriteLogFile] = useState(iniObj.writeLogFile)
-
-  const sortList = [ // ソートの選択リスト
-                { label: '定義順', value: 'def' },
-                { label: '使用順', value: 'dat' },
-                { label: '頻度順', value: 'cnt' },
-              ]
-
   const { post, from } = useLocalSearchParams();
   let scnNum = 0;
   if (post) {
@@ -49,10 +36,6 @@ export default function configApp(){
   };
 
   const router = useRouter();
-
-  function onPressConfigText(){
-    router.push({ pathname: "/configText", params: { post: scnNum, from: 'configApp' } });
-  }
 
   const [sliderValue, setSliderValue] = useState(iniObj.changeVol?iniObj.myVol:orgVol)
   function onSlider(value:number) {
@@ -183,14 +166,16 @@ export default function configApp(){
           </Pressable> 
         ), 
         headerRight:  () => ( 
-          <Pressable onPressIn={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
+          <Pressable onPressIn={() => router.push({ pathname: "/helpConfigApp", params: { post: scnNum } })}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
             </View>
           </Pressable>
         ), 
         }} />
+    <SafeAreaView>
     <ScrollView>
+
     <View style={[stylAppConf.container]}>
         <TouchableHighlight  onLongPress={ ()  => { 
           Alert.alert('質問','画面定義ファイルをひとつ前に戻しますか？', [
@@ -200,7 +185,7 @@ export default function configApp(){
               reloadAppAsync();
             }}, ])}} >
           <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
-            <Text style={[stylAppConf.text, {color: 'red'}]}>定義を前に戻す</Text>
+            <Text style={[stylAppConf.text, {color: 'red'}]}>定義を戻す</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onLongPress={ ()  => { 
@@ -222,14 +207,15 @@ export default function configApp(){
             <Text style={[stylAppConf.text, {color: 'red'}]}>再起動</Text>
           </View>
         </TouchableHighlight>
-        <TouchableHighlight onPress={ ()  => { 
-            router.push({ pathname: "/configPay", params: { post: scnNum, from: 'configApp' } });
+        <TouchableHighlight disabled={Platform.OS !== 'ios'}
+          onPress={ ()  => { 
+            router.push({ pathname: "/paySupport", params: { post: scnNum, from: 'configApp' } });
           }} 
           onLongPress={ () => {
             router.push({ pathname: "/payWall", params: { post: scnNum, from: 'configApp' } });
           }}>
           <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
-            <Text style={[stylAppConf.text, {color: 'red'}]}>応援</Text>
+            <Text style={[stylAppConf.text, {color:Platform.OS !== 'ios'?'gray':'red'}]}>応援</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ () => {
@@ -277,7 +263,7 @@ export default function configApp(){
             ])
           }}
           onLongPress={ () => { 
-            Alert.alert('質問','データをシェアしますか？', [
+            Alert.alert('質問','ログをシェアしますか？', [
               { text: 'いいえ', onPress: () => {return
               }},
               { text: 'ログのシェア', onPress: () => { 
@@ -407,11 +393,14 @@ export default function configApp(){
     </View>
     <View style={{height:100}}></View>
     </ScrollView>
+    </SafeAreaView>
+    <SafeAreaView  style={[styles.containerBottom ]}>
     <TouchableHighlight onPress={ ()  => { pgBack() }} >
          <View style={[stylAppConf.bottomButton,{height: stylAppConf.button.height}]}>
         <Text style={[stylAppConf.text, {fontSize:18}]}>戻る</Text>
       </View>
     </TouchableHighlight>
+    </SafeAreaView>
   </SafeAreaProvider>
   );
 }

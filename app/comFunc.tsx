@@ -554,8 +554,8 @@ export function findButtonHeight(scrn:number){
   } else {
     let matchText = pgObj[scrn].pgOption.match(/.*(row):(.+?)(\s+.*|$)/)
     if (matchText !== null && matchText[2] !== undefined && matchText[2] !== null) {
-      let numRow = parseInt(matchText[2]);
-      if (numRow < 1) {numRow = 1}
+      numRow = parseInt(matchText[2]);
+      if (numRow < 1) {numRow = 1}    
     }
     buttonHeight =(windwHight - 60)/ (numRow + 1) - 8; // row指定の場合の高さ
   }

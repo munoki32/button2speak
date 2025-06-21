@@ -1,4 +1,3 @@
-import * as Application from 'expo-application';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
@@ -31,12 +30,6 @@ export default function help(){
 					</Pressable> ),               
 			}} />
 			<View  style={[stylesHelp.container, {height:300 }]}>
-				<Text style={{ textAlign: 'center', fontSize:18}}>
-					Version:{Application.nativeApplicationVersion}
-					　Build:{Application.nativeBuildVersion}
-					　Size:{Dimensions.get('window').width.toFixed(0)}
-							x{Dimensions.get('window').height.toFixed(0)}
-				</Text>
 			<ScrollView >
 						<Text style={stylesHelp.text}>
 						{`

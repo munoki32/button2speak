@@ -2,25 +2,15 @@ import { Stack, useLocalSearchParams, useRouter, } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet, Text,
-  TextInput,
-  TouchableHighlight,
-  useWindowDimensions,
-  View
+  Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput,
+  TouchableHighlight, View
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { iniObj, pgObj, writeFile, writeLog } from './comFunc';
 import { styles } from './index';
 
-export default function configButton(){
-  const { width, height } = useWindowDimensions();
-  const isPortrait = height >= width;
+export default function editButton(){ // ボタンの編集
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -38,7 +28,7 @@ export default function configButton(){
   if (originScn){
     originScnNum = Number(originScn)
   }
-  writeLog( 0, 'configButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
+  writeLog( 0, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
 
   const [textInput, setTextInput] = useState(pgObj[scnNum].btnList[buttonNum].moji);  // for TextInput area 初期値
   const [speakInput, setSpeakInput] = useState(pgObj[scnNum].btnList[buttonNum].speak);  // for TextInput area 初期値
@@ -142,7 +132,7 @@ export default function configButton(){
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable onPressIn={() => {
-                  router.push({ pathname: "/help", params: { post: scnNum } } );
+                  router.push({ pathname: "/helpEditButton", params: { post: scnNum } } );
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
                 <Text style={{textAlign:'center' }}>ヘルプ</Text>
@@ -157,9 +147,8 @@ export default function configButton(){
             </Pressable> 
           ),    
           }}/>
-        <View>
+        <ScrollView >
           <Text style={{fontSize:20, textAlign:'center'}}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle + ' - #'  + buttonNum.toString()}</Text>
-          <ScrollView >
           <View style={{flex:1, flexDirection:'row', flexWrap:'wrap'}}>
             <Text style={[stylesFreeText.text]}>ボタンの表示</Text>
             <TextInput style={[stylesFreeText.textInput]}
@@ -207,8 +196,12 @@ export default function configButton(){
               />
           </View>
         </View>
-          <View style={[stylesFreeText.containerBottom,{ height:80,
-              width:Dimensions.get('window').width, flexWrap:'wrap' }]}>
+      </ScrollView>
+          </SafeAreaView>
+          <SafeAreaView  style={[styles.containerBottom,{ bottom:40,
+             height:150} ]}>
+          <View style={[styles.containerBottom,{
+            width: Dimensions.get('window').width, height:150} ]}>
             <TouchableHighlight onPress={ () => { router.back() } }>
               <View style={[stylesFreeText.button, {backgroundColor:iniObj.controlButtonColor,
                 width:Dimensions.get('window').width/3-12 }]}>
@@ -237,10 +230,7 @@ export default function configButton(){
                 <Text style={[stylesFreeText.buttonText, {color:(selectScrn<0)?'gray':''}]}>コピー</Text>
               </View>
             </TouchableHighlight >
-          </View>
-          <View style={[stylesFreeText.containerBottom,{ height:80,
-              width:Dimensions.get('window').width, flexWrap:'wrap' }]}>
-            <TouchableHighlight onPress={ () => {
+            <TouchableHighlight onLongPress={ () => {
               writeLog( 0, 'delete:' + scnNum + ' ' + buttonNum);
               writeLog( 0, 'delete:' + pgObj[scnNum].btnList[buttonNum].moji);
               pgObj[scnNum].btnList.splice(buttonNum, 1);  //　エントリーを消す
@@ -248,7 +238,7 @@ export default function configButton(){
             }} >
               <View style={[stylesFreeText.button, {backgroundColor:iniObj.controlButtonColor,
                 width:Dimensions.get('window').width/3-12 }]}>
-                <Text style={stylesFreeText.buttonText}>削除</Text>
+                <Text style={[stylesFreeText.buttonText, {color:'red'}]}>削除</Text>
               </View>
             </TouchableHighlight>
             <TouchableHighlight onPress={ () => { updateButton()} }>
@@ -269,8 +259,6 @@ export default function configButton(){
               </View>
             </TouchableHighlight>
           </View>
-          </ScrollView>
-        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   )
@@ -300,7 +288,7 @@ export const stylesFreeText = StyleSheet.create({
   },
   textInput: {
     width: Dimensions.get('window').width-120,
-    height: 40,
+    height: 45,
     borderWidth: 0.5,
     paddingLeft: 5,
     fontSize: 18,

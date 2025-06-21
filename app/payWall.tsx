@@ -14,7 +14,7 @@ export default function payWall(){
         Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
       }
       if (Platform.OS === 'ios') {
-        Purchases.configure({apiKey: 'appl_jdpXVGjdWJBVuRGkicsZOXBmPXv' });
+        Purchases.configure({apiKey: 'appl_iPWljtfdLheKhgOumltEKQcWosf' });
       } else if (Platform.OS === 'android') {
         // Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
       } 

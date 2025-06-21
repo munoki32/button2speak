@@ -3,17 +3,15 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet,
-  Switch,
-  Text,
-  TextInput, TouchableHighlight, View
+  Switch, Text, TextInput, TouchableHighlight, View,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { freeText, iniObj, makeLink, pgObj, removeDup, writeFile, writeLog } from './comFunc';
 import { freeTextScn } from './freeText';
 import { styles } from './index';
 
-export default function configScrn(){
+export default function configScrn(){ // 画面設定・フリー設定
 
   const [freeTextClear, setfreeTextClear] = useState(iniObj.freeTextClear)
   
@@ -132,177 +130,180 @@ export default function configScrn(){
           </Pressable> 
         ), 
         headerRight:  () => ( 
-          <Pressable onPressIn={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
+          <Pressable onPressIn={() => router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
             </View>
           </Pressable>
         ), 
         }} />
-    <ScrollView>
-      <View style={[stylScrnConf.container]}>
-        <TouchableHighlight onLongPress={ ()  => { 
-          Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」画面を削除しますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: 'はい', onPress: () => { 
-              delScn(scnNum);
+    <SafeAreaView>
+      <ScrollView>
+        <View style={[stylScrnConf.container]}>
+          <TouchableHighlight onLongPress={ ()  => { 
+            Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」画面を削除しますか？', [
+              { text: 'いいえ', onPress: () => {return} },
+              { text: 'はい', onPress: () => { 
+                delScn(scnNum);
+                }}, ])
+            }} >
+            <View style={[stylScrnConf.button,  {width: Dimensions.get('window').width/2-5} ]}>
+              <Text style={[stylScrnConf.text, {color: 'red'}]}>画面を削除する</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight onPress={ ()  => { 
+            Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」の使用回数をリセットしますか？', [
+              { text: 'いいえ', onPress: () => {return} },
+              { text: 'はい', onPress: () => { 
+                pgObj[scnNum].btnList.map((a) => a.numUsed = 0);
+                }}, ])
+            }} >
+            <View style={[stylScrnConf.button,   {width: Dimensions.get('window').width/2-5} ]}>
+              <Text style={[stylScrnConf.text,]}>使用回数をリセット</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight onPress={ ()  => { 
+            scnNum !== freeTextScn ?
+            Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」にどこからもリンクされていない画面を登録しますか？', [
+              { text: 'いいえ', onPress: () => {return} },
+              { text: 'はい', onPress: () => { 
+                makeLink(scnNum)
               }}, ])
-          }} >
-          <View style={[stylScrnConf.button,  {width: Dimensions.get('window').width/2-5} ]}>
-            <Text style={[stylScrnConf.text, {color: 'red'}]}>画面を削除する</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={ ()  => { 
-          Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」の使用回数をリセットしますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: 'はい', onPress: () => { 
-              pgObj[scnNum].btnList.map((a) => a.numUsed = 0);
+              :
+            Alert.alert('質問','旧フリーテキストを取込みますか？', [
+              { text: 'いいえ', onPress: () => {return} },
+              { text: 'はい', onPress: () => { 
+              addFreeText()
               }}, ])
-          }} >
-          <View style={[stylScrnConf.button,   {width: Dimensions.get('window').width/2-5} ]}>
-            <Text style={[stylScrnConf.text,]}>使用回数をリセット</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={ ()  => { 
-          scnNum !== freeTextScn ?
-          Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」にどこからもリンクされていない画面を登録しますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: 'はい', onPress: () => { 
-              makeLink(scnNum)
-            }}, ])
-            :
-          Alert.alert('質問','旧フリーテキストを取込みますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: 'はい', onPress: () => { 
-            addFreeText()
-            }}, ])
-          }} >
-          <View style={[stylScrnConf.button,  {width: Dimensions.get('window').width/2-5} ]}>
-            <Text style={[stylScrnConf.text,]}>{scnNum !== freeTextScn ?'非リンク画面登録':'旧フリーの取込' }</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={ () => {onPressConfigText()}} >
-          <View style={[stylScrnConf.button,{width: Dimensions.get('window').width/2-5} ]}>
-            <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」画面エディタ</Text>
-          </View>
-        </TouchableHighlight>
-        { scnNum !== freeTextScn?
-        <TouchableHighlight disabled={scnNum===freeTextScn?true:false}
-          onPress={() => { router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } }) }} 
-          >
-          <View style={[stylScrnConf.button,{width: Dimensions.get('window').width,
-            backgroundColor:stylScrnConf.bottomButton.backgroundColor} ]}>
-              <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」ボタン追加/編集へ</Text> 
-          </View>
-        </TouchableHighlight>
-        : <View style={[stylScrnConf.button,{width: Dimensions.get('window').width, borderWidth:0,
-           backgroundColor:styles.container.backgroundColor} ]}>
-            <Text>「フリー」のタイトルを変更すると、このフリー画面は新たな画面に成ります。
-              その画面をリンクしたい画面の設定で「非リンク画面登録」をしてください。
-            </Text>
-           </View>
-        }
-        <Text style={[stylScrnConf.text, {marginTop:19, height:40}]}>タイトル</Text>
-        <TextInput style={[stylScrnConf.textInput]}
-          autoFocus={false}
-          multiline={false}
-          onChangeText={(text)=> { setTextInput(text);
-            // pgObj[scnNum].pgTitle = text;
-          }}
-          value={textInput} />
-        <View style={{borderWidth:0,}}>
-
-          <RNPickerSelect 
-            onValueChange={(value) => {
-              setPageSort(value);
-              pgSort = value;
-              // if (value === 'def') return;
-              let matchPattern = /(^.*)(sort:)(...)($| .*$)/
-              let matchText = pgObj[scnNum].pgOption.match(matchPattern)
-              if (matchText !== null && matchText[2] !== '') {
-                if (value !== 'non') {
-                  pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, '$1$2'+value+'$4')
-                } else {
-                  pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
-                }
-              } else {
-                if (value !== 'non') { pgObj[scnNum].pgOption += ' sort:' + value; } // add sort:option
-              }
-            }}
-            items={sortList}
-            Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
-            style={pickerSelectStyles}
-            // placeholder={{ label:'この画面の表示順', value: pageSort }}
-            value={pageSort}
-            />
-          <Text style={[stylScrnConf.switchText,]}>画面表示順</Text>
-
-          <RNPickerSelect 
-            onValueChange={(value) => {
-              setPageRow(value);
-              let matchPattern = /(^.*)(row:)(\d+)($| .*$)/
-              let matchText = pgObj[scnNum].pgOption.match(matchPattern)
-              if (matchText !== null && matchText[2] !== '') {
-                if (value !== '') {
-                  pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                  writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
-                } else {
-                  pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
-                }
-              } else {
-                if (value !== '') { pgObj[scnNum].pgOption += ' row:' + value; } // add sort:option
-              }
-            }}
-            items={[{label:'1', value:'1'},{label:'2', value:'2'},{label:'3', value:'3'},
-              {label:'4', value:'4'},{label:'5', value:'5'},{label:'6', value:'6'}, 
-              {label:'7', value:'7'},{label:'8', value:'8'},{label:'9', value:'9'}, 
-              ]}
-            Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
-            style={pickerSelectStyles}
-            placeholder={{ label:'---', value: '' }}
-            value={pageRow}
-            />
-          <Text style={[stylScrnConf.switchText,]}>この画面の行数</Text>
-
-          <RNPickerSelect 
-            onValueChange={(value) => {
-              setPageCol(value);
-              let matchPattern = /(^.*)(col:)(\d+)($| .*$)/
-              let matchText = pgObj[scnNum].pgOption.match(matchPattern)
-              if (matchText !== null && matchText[2] !== '') {
-                if (value !== '') {
-                  pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                  writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
-                } else {
-                  pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
-                }
-              } else {
-                if (value !== '') { pgObj[scnNum].pgOption += ' col:' + value; } // add sort:option
-              }
-            }}
-            items={[{label:'1', value:'1'},{label:'2', value:'2'},{label:'3', value:'3'},
-              {label:'4', value:'4'},{label:'5', value:'5'},{label:'6', value:'6'}, 
-              ]}
-            Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
-            style={pickerSelectStyles}
-            placeholder={{ label:'---', value: '' }}
-            value={pageCol}
-            />
-          <Text style={[stylScrnConf.switchText,]}>この画面の列数</Text>
-          { scnNum !== freeTextScn? 
-            <View></View>
-          :
-            <ClearFree/>
+            }} >
+            <View style={[stylScrnConf.button,  {width: Dimensions.get('window').width/2-5} ]}>
+              <Text style={[stylScrnConf.text,]}>{scnNum !== freeTextScn ?'非リンク画面登録':'旧フリーの取込' }</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight onPress={ () => {onPressConfigText()}} >
+            <View style={[stylScrnConf.button,{width: Dimensions.get('window').width/2-5} ]}>
+              <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」画面エディタ</Text>
+            </View>
+          </TouchableHighlight>
+          { scnNum !== freeTextScn?
+          <TouchableHighlight disabled={scnNum===freeTextScn?true:false}
+            onPress={() => { router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } }) }} 
+            >
+            <View style={[stylScrnConf.button,{width: Dimensions.get('window').width,
+              backgroundColor:stylScrnConf.bottomButton.backgroundColor} ]}>
+                <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」ボタン追加/編集へ</Text> 
+            </View>
+          </TouchableHighlight>
+          : <View style={[stylScrnConf.button,{width: Dimensions.get('window').width, borderWidth:0,
+            backgroundColor:styles.container.backgroundColor} ]}>
+              <Text>「フリー」のタイトルを変更すると、このフリー画面は新たな画面に成ります。
+                その画面をリンクしたい画面の設定で「非リンク画面登録」をしてください。
+              </Text>
+            </View>
           }
-        </View>
+          <Text style={[stylScrnConf.text, {marginTop:19, height:40}]}>タイトル</Text>
+          <TextInput style={[stylScrnConf.textInput]}
+            autoFocus={false}
+            multiline={false}
+            onChangeText={(text)=> { setTextInput(text);
+              // pgObj[scnNum].pgTitle = text;
+            }}
+            value={textInput} />
+          <View style={{borderWidth:0,}}>
 
-      </View>
-    </ScrollView>
-    <TouchableHighlight onPress={ ()  => { pgBack() }} >
-         <View style={[stylScrnConf.bottomButton,{height: stylScrnConf.button.height}]}>
-        <Text style={[stylScrnConf.text, {fontSize:18}]}>戻る</Text>
-      </View>
-    </TouchableHighlight>
+            <RNPickerSelect 
+              onValueChange={(value) => {
+                setPageSort(value);
+                pgSort = value;
+                // if (value === 'def') return;
+                let matchPattern = /(^.*)(sort:)(...)($| .*$)/
+                let matchText = pgObj[scnNum].pgOption.match(matchPattern)
+                if (matchText !== null && matchText[2] !== '') {
+                  if (value !== 'non') {
+                    pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, '$1$2'+value+'$4')
+                  } else {
+                    pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
+                  }
+                } else {
+                  if (value !== 'non') { pgObj[scnNum].pgOption += ' sort:' + value; } // add sort:option
+                }
+              }}
+              items={sortList}
+              Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
+              style={pickerSelectStyles}
+              // placeholder={{ label:'この画面の表示順', value: pageSort }}
+              value={pageSort}
+              />
+            <Text style={[stylScrnConf.switchText,]}>画面表示順</Text>
+
+            <RNPickerSelect 
+              onValueChange={(value) => {
+                setPageRow(value);
+                let matchPattern = /(^.*)(row:)(\d+)($| .*$)/
+                let matchText = pgObj[scnNum].pgOption.match(matchPattern)
+                if (matchText !== null && matchText[2] !== '') {
+                  if (value !== '') {
+                    pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
+                    writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                  } else {
+                    pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
+                  }
+                } else {
+                  if (value !== '') { pgObj[scnNum].pgOption += ' row:' + value; } // add sort:option
+                }
+              }}
+              items={[{label:'1', value:'1'},{label:'2', value:'2'},{label:'3', value:'3'},
+                {label:'4', value:'4'},{label:'5', value:'5'},{label:'6', value:'6'}, 
+                {label:'7', value:'7'},{label:'8', value:'8'},{label:'9', value:'9'}, 
+                ]}
+              Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
+              style={pickerSelectStyles}
+              placeholder={{ label:'---', value: '' }}
+              value={pageRow}
+              />
+            <Text style={[stylScrnConf.switchText,]}>この画面の行数</Text>
+
+            <RNPickerSelect 
+              onValueChange={(value) => {
+                setPageCol(value);
+                let matchPattern = /(^.*)(col:)(\d+)($| .*$)/
+                let matchText = pgObj[scnNum].pgOption.match(matchPattern)
+                if (matchText !== null && matchText[2] !== '') {
+                  if (value !== '') {
+                    pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
+                    writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                  } else {
+                    pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
+                  }
+                } else {
+                  if (value !== '') { pgObj[scnNum].pgOption += ' col:' + value; } // add sort:option
+                }
+              }}
+              items={[{label:'1', value:'1'},{label:'2', value:'2'},{label:'3', value:'3'},
+                {label:'4', value:'4'},{label:'5', value:'5'},{label:'6', value:'6'}, 
+                ]}
+              Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
+              style={pickerSelectStyles}
+              placeholder={{ label:'---', value: '' }}
+              value={pageCol}
+              />
+            <Text style={[stylScrnConf.switchText,]}>この画面の列数</Text>
+            { scnNum !== freeTextScn? 
+              <View></View>
+            :
+              <ClearFree/>
+            }
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+    <SafeAreaView  style={[styles.containerBottom ]}>
+      <TouchableHighlight onPress={ ()  => { pgBack() }} >
+          <View style={[stylScrnConf.bottomButton,{height: stylScrnConf.button.height}]}>
+          <Text style={[stylScrnConf.text, {fontSize:18}]}>戻る</Text>
+        </View>
+      </TouchableHighlight>
+    </SafeAreaView>
   </SafeAreaProvider>
   );
 

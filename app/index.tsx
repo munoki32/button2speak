@@ -15,10 +15,14 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import { VolumeManager } from 'react-native-volume-manager';
 import {
-  buttonSort, dispText, findBottmHeight, findButtonHeight, findButtonWidth,
+  buttonSort, dispText,
+  findButtonHeight, findButtonWidth,
   findFontSize, iniObj, mojiStack, pgObj, pgStack, readInitialFile, speakStack,
   writeFile, writeLog
 } from './comFunc';
+// import Purchases, {
+//   CustomerInfo, PurchasesOffering, PurchasesPackage
+// } from 'react-native-purchases';
 
 SplashScreen.preventAutoHideAsync();
 export let orgVol = 0 // save system volume level
@@ -34,6 +38,16 @@ export default function index(){
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   
   useEffect(() => {  // only once after 1st rendering
+
+      // if (Platform.OS === 'ios') {
+      //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+      // }
+      // if (Platform.OS === 'ios') {
+      //   Purchases.configure({apiKey: 'appl_jdpXVGjdWJBVuRGkicsZOXBmPXv' });
+      // } else if (Platform.OS === 'android') {
+      //   // Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
+      // } 
+
       readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
       setScnNum(0);    // 画面をホームセット
       router.dismissTo('/'); //これをしないと初画面がブランク
@@ -328,7 +342,7 @@ async function setVol(vol:number) {
       // writeLog( 0, 'onLongPress:' + matchText[2]);
       toDoSpeak(index)
     } else {
-      // router.push({ pathname: "/configButton", params: { post: scnNum, from: index, originScn:-2 } }); 
+      // router.push({ pathname: "/editButton", params: { post: scnNum, from: index, originScn:-2 } }); 
       toDoSpeak(index)
     }
   }
@@ -342,9 +356,14 @@ async function setVol(vol:number) {
     <SafeAreaProvider>
       <SafeAreaView>
         <Stack.Screen options={{
-          title: (scnNum !== 0 )? scnNum.toString()+':' + pgObj[scnNum].pgTitle : pgObj[scnNum].pgTitle ,
-          headerTitleAlign: 'center',
-          headerTitleStyle:{ fontWeight:'bold',  fontSize:( Dimensions.get('window').height < 1000 )? 25:40 },
+          headerTitle: () => (
+            <Pressable onLongPress={() => router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } })}>
+            <View style={{width:160}}>
+              <Text style={{alignSelf:'center', fontWeight:'bold',fontSize:( Dimensions.get('window').height < 1000 )? 20:40}}>
+                {pgObj[scnNum].pgTitle}</Text>
+            </View>
+            </Pressable>
+          ),
           headerBackButtonDisplayMode:  'minimal' ,
           headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
           headerRight:  () => (
@@ -413,8 +432,7 @@ async function setVol(vol:number) {
           </View>
         </ScrollView>
         </SafeAreaView>
-        <SafeAreaView  style={[styles.containerBottom,{width: Dimensions.get('window').width, height:findBottmHeight(scnNum)+30} ]}>
-          <View  style={[styles.containerBottom,{width: Dimensions.get('window').width, height:findBottmHeight(scnNum)+30 } ]}>
+        <SafeAreaView style={styles.containerBottom}>
           <MoveButton name='＜' onPress={() => {pgBack()}}
             width={Dimensions.get('window').width/4-12}/>
           <MoveButton name='もう一度'  onPress={() => replaySpeak()} onLongPress={() => {
@@ -424,7 +442,7 @@ async function setVol(vol:number) {
             width={Dimensions.get('window').width/4-12}/>
           <MoveButton name='フリー' onPress={() => { router.push({ pathname: "/freeText", params: { post: scnNum, from: 'index' } }) }}
             onLongPress={() => {
-              router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } })
+              router.push({ pathname: "/freeText", params: { post: scnNum, from: 'index' } })
               // onConfigScrn()  
             }} 
             width={ Dimensions.get('window').width/4-12 }/>
@@ -432,7 +450,6 @@ async function setVol(vol:number) {
               pgHome()
             }} 
             width={ Dimensions.get('window').width/4-12 } />
-        </View>
         <StatusBar backgroundColor={styles.containerBottom.backgroundColor} barStyle="dark-content" />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -443,7 +460,7 @@ async function setVol(vol:number) {
     return (
       <Pressable onPress={props.onPress} onLongPress={props.onLongPress} delayLongPress={1000}>
         <View style={[styles.buttonBottom, {backgroundColor:iniObj.controlButtonColor, 
-          width:props.width, height:findBottmHeight(scnNum)}]}>
+          width:props.width, }]}>
           <Text style={{ fontSize: findFontSize(scnNum, 3)-6}}>{props.name}</Text>
         </View>
       </Pressable>
@@ -505,13 +522,15 @@ export const styles = StyleSheet.create({
   },
   containerBottom: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 10,             //縦の間隔
     position: 'absolute',
     bottom: 0,
     justifyContent: 'space-between',
     left: 0,
     paddingVertical:10,
     width: Dimensions.get('window').width,
-    height: (Dimensions.get('window').height-230)/6 + 30,
+    // height: (Dimensions.get('window').height-230)/6 + 15,
     backgroundColor: 'white',
     },
   buttonBottom: {
@@ -519,11 +538,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor:'#ddff99',
     width: Dimensions.get('window').width/7*2-8,
-    height: Math.max((Dimensions.get('window').height)/8, 70),
+    height: (Dimensions.get('window').height-230)/6 ,
     borderRadius: 15,
     borderColor: 'gary',
     borderWidth: 1,   //ここで全ての操作ボタンのボーダーが変わる
-    marginTop:10,
+
   },
   headerButton: {
     backgroundColor:'#ddff99' ,

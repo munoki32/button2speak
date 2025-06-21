@@ -5,44 +5,24 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Modal,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableHighlight,
-  useWindowDimensions,
+  Alert, Dimensions, Modal, Pressable, ScrollView, StatusBar, StyleSheet,
+  Text, TextInput, TouchableHighlight,
   View
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  buttonSort,
-  dispText,
-  findBottmHeight,
-  findButtonHeight,
-  findButtonWidth,
-  findFontSize,
-  iniObj,
-  mojiStack,
-  pgObj,
-  speakStack,
-  writeFile,
-  writeLog
+  buttonSort, dispText, findBottmHeight, findButtonHeight, findButtonWidth,
+  findFontSize, iniObj, mojiStack, pgObj, speakStack, writeFile, writeLog,
 } from './comFunc';
 
-export let freeTextScn = 14;
+export let freeTextScn = 14; // フリーテキストに使用している画面番号
 
-export default function freeText(){
+export default function freeText(){ // フリー・ボタン追加/編集
+
   const [textInput, setTextInput] = useState('');  // for TextInput area 初期値
   const router = useRouter();
   const isFocused = useIsFocused(); //これでrouter.backで戻ってきても再レンダリングされる
   const [changeScrn, setChangeScrn] = useState(true) //再レンダリング用
-  const { height, width } = useWindowDimensions();
-  const isPortrait = height >= width;
   const [modalVisible, setModalVisible] = useState(false);
   
   const { post, from } = useLocalSearchParams();  //  呼び出しの画面番号を受け取る
@@ -62,7 +42,7 @@ export default function freeText(){
     freeTextScn = pgObj.length - 1;
   } 
   scnNum = freeTextScn;  // セット　フリーテキストモード
-
+  buttonSort(scnNum);  // 20250616 sort after say
   if (from) {   // change to updat by freeText
     writeLog( 0, 'freeText: post:'+ post + ' from:' + from);
     if (from === 'configScrn') {
@@ -71,7 +51,6 @@ export default function freeText(){
     }
   } 
 
-  
 function toDo(count:number) {   //発声ボタンが押された時の処理
   if (scnNum === 0) {
     speakStack.splice(0);
@@ -134,15 +113,11 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
       }
   }
   setTextInput(pgObj[scnNum].btnList[count].moji)
-  buttonSort(scnNum)
-  // setChangeScrn(!changeScrn); //画面の強制更新
-
 } // end of toDo
   
-
   function onLognPress(index:number){ // 
       setTextInput(pgObj[scnNum].btnList[index].moji);  //入力欄に表示
-      router.push({ pathname: "/configButton", params: { post: scnNum, from: index.toString(), originScn:originScn} });
+      router.push({ pathname: "/editButton", params: { post: scnNum, from: index.toString(), originScn:originScn} });
   }
 
   function onPressSay(){
@@ -173,10 +148,6 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     // }
     const isSame = pgObj[scnNum].btnList.findIndex(text => text.moji === textInput) 
     if (isSame === -1) { //同じ内容は記録しない
-      // let nextDefSeq = pgObj[scnNum].btnList.length
-      // if (pgObj[scnNum].btnList.length > 0) {
-      //   nextDefSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq),0)+10
-      // } 
       pgObj[scnNum].btnList.push({moji:textInput, speak:'', tugi:'', option:' ',
         defSeq:-999, usedDt:Date.now(), numUsed:1000 })
       pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10)
@@ -187,12 +158,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     if (iniObj.freeTextClear) {
       setTextInput('');
     }
-    buttonSort(scnNum);  // 20250616 sort after say
-    setChangeScrn(!changeScrn);
-  }
-
-  function onPressClear(){
-     setTextInput('');
+    // setChangeScrn(!changeScrn);
   }
 
   function onLongPressClear(){
@@ -218,25 +184,30 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     <SafeAreaProvider>
       <SafeAreaView>
           <Stack.Screen options={{
-            title: scnNum === freeTextScn?'フリー':'ボタン追加/編集' ,
-            headerTitleAlign: 'center',
-            headerTitleStyle: { fontWeight:'bold', fontSize:( Dimensions.get('window').height < 1000 )? 25:40 },
+            headerTitle: () => (
+              <Pressable onLongPress={() => router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'freeText' } })}>
+              <View style={{width:160}}>
+                <Text style={{alignSelf:'center', fontWeight:'bold',fontSize:( Dimensions.get('window').height < 1000 )? 20:40}}>
+                  {scnNum === freeTextScn?'フリー':'ボタン追加/編集' }</Text>
+              </View>
+              </Pressable>
+            ),
             headerBackButtonDisplayMode:  'minimal' ,
             headerStyle: { backgroundColor: stylesFree.containerBottom.backgroundColor },
             headerRight:  () => ( 
               !isFromConifigScn?
               <Pressable onPressIn={() => {
                 writeFile();
-                router.push({ pathname: "/configScrn", params: { post: scnNum, from: originScn } });
+                router.push({ pathname: "/helpFreeText", params: { post: scnNum, from: originScn } });
               }}>
                 <View style={[stylesFree.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
-                  <Text style={{textAlign:'center' }}>フリー設定</Text>
+                  <Text style={{textAlign:'center' }}>ヘルプ</Text>
                 </View>
               </Pressable>
               :               
               <Pressable onPressIn={() => {
                 writeFile();
-                router.push({ pathname: "/help", params: { post: scnNum, from: originScn } });
+                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: originScn } });
               }}>
                 <View style={[stylesFree.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
                   <Text style={{textAlign:'center' }}>ヘルプ</Text>
@@ -287,7 +258,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
         <View  style={[stylesFree.containerBottom,{width: Dimensions.get('window').width, height:findBottmHeight(scnNum)*0.8+30} ]}>
           <MoveButton name='＜' onPress={() => {pgBack()}}
             width={Dimensions.get('window').width/3-12}/>
-          <MoveButton name='クリア' onPress={() => {onPressClear()}} onLongPress={() => {onLongPressClear() }}
+          <MoveButton name='クリア' onPress={() => {setTextInput('');}} onLongPress={() => {onLongPressClear() }}
             width={ Dimensions.get('window').width/3-12 } />
           <MoveButton name='発声/追加' onPress={() => {onPressSay()}} 
             onLongPress={() => {router.push({ pathname: "/freeText0", params: { post: scnNum, from: 'freeText' } })
