@@ -2,8 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState, } from 'react';
 import { Dimensions, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import Purchases, {
-  CustomerInfo,
-  PurchasesPackage
+	CustomerInfo,
+	PurchasesPackage
 } from 'react-native-purchases';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { writeLog } from './comFunc';
@@ -65,14 +65,14 @@ return (
 		title: '応援', 
     headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
     headerLeft:  () => ( 
-      <Pressable onPressIn={() => router.back()}>
+      <Pressable onPress={() => router.back()}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center' }}>＜</Text>
         </View>
       </Pressable> 
     ),      
     headerRight:  () => ( 
-      <Pressable onPressIn={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
+      <Pressable onPress={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
         </View>

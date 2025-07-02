@@ -96,14 +96,14 @@ return (
     title: '応援', 
     headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
     headerLeft:  () => ( 
-      <Pressable onPressIn={() => router.back()}>
+      <Pressable onPress={() => router.back()}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center' }}>＜</Text>
         </View>
       </Pressable> 
     ),      
     headerRight:  () => ( 
-      <Pressable onPressIn={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
+      <Pressable onPress={() => router.push({ pathname: "/helpPaySupport", params: { post: scnNum } })}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
         </View>
@@ -113,12 +113,11 @@ return (
     <ScrollView>
       <SafeAreaView style={stylPayConf.container} >
         <View style={[stylPayConf.container]}>
-          <Text style={{fontSize:22, marginTop:10}}>応援をお願いします</Text>
-          <Text style={{fontSize:18}}> 
-            {`この度はアプリのご利用ありがとうございます、このアプリは無償で全ての機能がご利用いただけます。
-    なお、開発者はアプリの公開には、無料のアプリであっても、Apple Developer Programメンバーシップの登録料（12,800円）が毎年必要です。
-    もし、アプリ公開にご賛同、ご協力いただきましたら、応援をお願いします。
-    どうぞよろしくお願いいたします。
+          <Text style={[stylPayConf.text, {marginTop:10, width:Dimensions.get('window').width}]}>応援をお願いします</Text>
+          <Text style={[stylPayConf.text, {textAlign:'left'}]}> 
+{`この度は本アプリのご利用ありがとうございます、このアプリは無償で全ての機能がご利用いただけます。
+アプリの開発、維持、公開にご賛同、ご協力いただき、応援をお願いします。
+どうぞよろしくお願いいたします。
             `} 
           </Text>
           {currentOffering && currentOffering.availablePackages.map((item,i) => 
@@ -135,21 +134,19 @@ return (
         </View>
       </SafeAreaView>
     </ScrollView>
-    <SafeAreaView  style={[styles.containerBottom,{
-      width: Dimensions.get('window').width, height:80} ]}>
-      <View style={[styles.containerBottom,{
-        width: Dimensions.get('window').width, height:80} ]}>
+    <SafeAreaView  style={[styles.containerBottom ]}>
+
         <TouchableHighlight onPress={ ()  => { onPressRestore() }} >
-          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height, width:Dimensions.get('window').width/2-7}]}>
-            <Text style={[stylPayConf.text, {fontSize:18}]}>復元</Text>
+          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height}]}>
+            <Text style={[stylPayConf.text]}>復元</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ ()  => { router.back() }} >
-          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height, width:Dimensions.get('window').width/2-7}]}>
-          <Text style={[stylPayConf.text, {fontSize:18}]}>戻る</Text>
+          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height}]}>
+          <Text style={[stylPayConf.text]}>戻る</Text>
           </View>
         </TouchableHighlight>
-      </View>
+
     </SafeAreaView>
   </SafeAreaProvider>
       
@@ -186,14 +183,14 @@ export const stylPayConf = StyleSheet.create({
       justifyContent: 'center',  //上下位置
       paddingHorizontal: 5, 
       paddingRight:0,
-      width: Dimensions.get('window').width,
+      width: Dimensions.get('window').width/2-5,
       height: 80,
       borderRadius: 15,
       borderColor:styles.buttonBottom.borderColor,
       borderWidth:styles.buttonBottom.borderWidth,
       },
   text: {
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000 ? 18 : 36,
     color: styles.text.color,
     textAlign: 'center',
   },

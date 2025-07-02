@@ -1,10 +1,8 @@
-import React from 'react';
-import { Modal, Pressable, ScrollView, Dimensions, StyleSheet, Text, View, TouchableHighlight } from 'react-native';
-import { useRouter, Stack, useLocalSearchParams  } from 'expo-router';
-import { SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
-import { useState } from 'react';
 import * as Application from 'expo-application';
-import { iniObj } from './comFunc';
+import { Stack, useRouter } from 'expo-router';
+import React from 'react';
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './index';
 
 export default function about(){
@@ -18,7 +16,7 @@ export default function about(){
 				headerBackButtonDisplayMode:  'minimal' ,
 				headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
 				headerLeft:  () => ( 
-					<Pressable onPressIn={() => router.back()}>
+					<Pressable onPress={() => router.back()}>
 					<View style={[styles.headerButton,]}>
 						<Text style={{textAlign:'center' }}>＜</Text>
 					</View>
@@ -90,7 +88,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OU
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text,{fontSize:18}]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>戻る</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>
@@ -121,7 +119,7 @@ export const stylesHelp = StyleSheet.create({
     borderWidth: styles.buttonBottom.borderWidth,
   },
 	text: {
-    fontSize: 14,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
   },
 });

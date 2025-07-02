@@ -1,10 +1,9 @@
-import React from 'react';
-import { Modal, Platform, KeyboardAvoidingView, Pressable, ScrollView, Dimensions, StyleSheet, Text, View, Button, TextInput, TouchableHighlight, Alert } from 'react-native';
-import { useRouter, Stack, useLocalSearchParams  } from 'expo-router';
-import { SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
-import { useState } from 'react';
-import {  writeFile, pgObj, removeDup, iniObj, writeLog} from './comFunc'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Dimensions, Modal, Pressable, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import GestureRecognizer from 'react-native-swipe-gestures';
+import { iniObj, pgObj, removeDup, writeFile, writeLog } from './comFunc';
 import { styles } from './index';
 
 export let tempObj = { pgTitle:'', btnList:[{moji:'', speak:'', tugi:'', option:'', defSeq:'' }], pgOption:''} ;
@@ -131,18 +130,24 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
   <SafeAreaProvider>
     <SafeAreaView style={stylesConfText.container}>
       <Stack.Screen options={{
-          title: scnNum.toString()+': '+tempObj.pgTitle+ ' 編集（' + (offSet/numInput + 1).toString() + '）',
-          headerTitleAlign: 'center',
+          headerTitle: () => (
+            <Pressable onLongPress={() => router.push({ pathname: "/helpConfigText", params: { post: scnNum, from: 'index' } })}>
+            <View style={styles.headerTitle}>
+              <Text style={[styles.headertext]}>
+                {scnNum.toString()+':'+tempObj.pgTitle+ ' 編集/' + (offSet/numInput + 1).toString()}</Text>
+            </View>
+            </Pressable>
+          ),
           headerBackButtonDisplayMode:  'minimal' ,
             headerRight:  () => (
-              <Pressable onPressIn={() => onPressSave()}>
+              <Pressable onPress={() => onPressSave()}>
                 <View style={[styles.headerButton,]}>
                   <Text style={{textAlign:'center' }}>次へ</Text>
                 </View>
               </Pressable> 
             ),         
             headerLeft:  () => ( 
-              <Pressable onPressIn={() => onPressDismiss()}>
+              <Pressable onPress={() => onPressDismiss()}>
                 <View style={[styles.headerButton, ]}>
                   <Text style={{textAlign:'center' }}>＜</Text>
                 </View>

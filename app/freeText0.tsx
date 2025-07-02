@@ -1,14 +1,23 @@
-import React from 'react';
-import { ScrollView, Modal, Pressable, Dimensions, StyleSheet, Text, 
-  View, Button, TextInput, Alert, TouchableHighlight, Platform, useWindowDimensions } from 'react-native';
-import { useRouter, Stack, useLocalSearchParams,  } from 'expo-router';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
-import * as Speech from 'expo-speech';
-import RNPickerSelect from 'react-native-picker-select';
-import * as FileSystem from 'expo-file-system';
-import { iniObj, speakStack, dispText, mojiStack, writeFreeText, freeText, writeLog } from './comFunc';
 import { Audio } from 'expo-av';
+import { Stack, useLocalSearchParams, useRouter, } from 'expo-router';
+import * as Speech from 'expo-speech';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet, Text,
+  TextInput,
+  TouchableHighlight,
+  useWindowDimensions,
+  View
+} from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { dispText, freeText, iniObj, mojiStack, speakStack, writeFreeText, writeLog } from './comFunc';
 import { styles } from './index';
 
 export default function freeTextSpeak(){
@@ -129,7 +138,7 @@ export default function freeTextSpeak(){
           headerBackButtonDisplayMode:  'minimal' ,
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
-            <Pressable onPressIn={() => {
+            <Pressable onPress={() => {
                   router.push({ pathname: "/configApp", params: { post: scnNum, from: 'freeText' } });
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
@@ -138,7 +147,7 @@ export default function freeTextSpeak(){
             </Pressable> 
           ),         
           headerLeft:  () => ( 
-            <Pressable onPressIn={() => router.back() }>
+            <Pressable onPress={() => router.back() }>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
                 <Text style={{textAlign:'center' }}>＜</Text>
               </View>
@@ -150,7 +159,7 @@ export default function freeTextSpeak(){
           transparent={true}
           visible={modalVisible} >
           <ScrollView >
-          <View style={[styles.centeredView,{ width:Dimensions.get('window').width }]}>
+          <View style={[styles.modalView,{ width:Dimensions.get('window').width }]}>
               <View style={[styles.modalView,  { height: Dimensions.get('window').height*6/7-20, 
                   transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
                   {(dispText.length === 1 ) ?

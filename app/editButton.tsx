@@ -28,7 +28,7 @@ export default function editButton(){ // ボタンの編集
   if (originScn){
     originScnNum = Number(originScn)
   }
-  writeLog( 0, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
+  // writeLog( 0, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
 
   const [textInput, setTextInput] = useState(pgObj[scnNum].btnList[buttonNum].moji);  // for TextInput area 初期値
   const [speakInput, setSpeakInput] = useState(pgObj[scnNum].btnList[buttonNum].speak);  // for TextInput area 初期値
@@ -125,13 +125,19 @@ export default function editButton(){ // ボタンの編集
     <SafeAreaProvider>
       <SafeAreaView style={[stylesFreeText.container,{ width:Dimensions.get('window').width }]}>
         <Stack.Screen options={{
-          title: 'ボタンの編集', 
-          headerTitleAlign: 'center',  
-          headerTitleStyle: { fontWeight:'bold',  fontSize: 20 },
+          headerTitle: () => (
+            <Pressable onLongPress={() => {
+              router.push({ pathname: "/helpEditButton", params: { post: scnNum } })
+            }} >
+            <View style={styles.headerTitle}>
+              <Text style={styles.headerText}>ボタンの編集</Text>
+            </View>
+            </Pressable>
+          ),
           headerBackButtonDisplayMode:  'minimal' ,
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
-            <Pressable onPressIn={() => {
+            <Pressable onPress={() => {
                   router.push({ pathname: "/helpEditButton", params: { post: scnNum } } );
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
@@ -140,7 +146,7 @@ export default function editButton(){ // ボタンの編集
             </Pressable> 
           ),         
           headerLeft:  () => ( 
-            <Pressable onPressIn={() => router.back() }>
+            <Pressable onPress={() => router.back() }>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
                 <Text style={{textAlign:'center' }}>＜</Text>
               </View>
@@ -148,7 +154,7 @@ export default function editButton(){ // ボタンの編集
           ),    
           }}/>
         <ScrollView >
-          <Text style={{fontSize:20, textAlign:'center'}}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle + ' - #'  + buttonNum.toString()}</Text>
+          <Text style={{fontSize:Dimensions.get('window').width < 1000? 20: 36, textAlign:'center'}}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle + ' - #'  + buttonNum.toString()}</Text>
           <View style={{flex:1, flexDirection:'row', flexWrap:'wrap'}}>
             <Text style={[stylesFreeText.text]}>ボタンの表示</Text>
             <TextInput style={[stylesFreeText.textInput]}
@@ -287,22 +293,22 @@ export const stylesFreeText = StyleSheet.create({
     borderWidth:styles.buttonBottom.borderWidth,
   },
   textInput: {
-    width: Dimensions.get('window').width-120,
+    width: Dimensions.get('window').width<1000?Dimensions.get('window').width-120:Dimensions.get('window').width-240,
     height: 45,
     borderWidth: 0.5,
     paddingLeft: 5,
-    fontSize: 18,
+    fontSize:Dimensions.get('window').width < 1000? 18: 36,
     marginTop:10,
   },
   buttonText: {
-    fontSize: 18,
+    fontSize:Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
     // width: 145,
   },
     text: {
-    width:120 , 
+    width:Dimensions.get('window').width < 1000? 120:240 , 
     marginTop:14,
-    fontSize: 18,
+    fontSize:Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
     // width: 145,
   },
@@ -317,7 +323,7 @@ export const stylesFreeText = StyleSheet.create({
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 20,
+    fontSize:Dimensions.get('window').width < 1000? 18: 36,
     paddingVertical: 12,
     paddingHorizontal: 10,
     paddingRight: 30, // to ensure the text is never behind the icon
@@ -326,7 +332,7 @@ const pickerSelectStyles = StyleSheet.create({
     pointerEvents:'none', // fix make possble to click on line
   },
   inputAndroid: {
-    fontSize: 20,
+   fontSize:Dimensions.get('window').width < 1000? 18: 36,
     paddingRight: 30, // to ensure the text is never behind the icon
     // width: Dimensions.get('window').width,
     width:200,

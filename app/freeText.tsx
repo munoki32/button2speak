@@ -3,7 +3,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { reloadAppAsync } from "expo";
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert, Dimensions, Modal, Pressable, ScrollView, StatusBar, StyleSheet,
   Text, TextInput, TouchableHighlight,
@@ -14,6 +14,7 @@ import {
   buttonSort, dispText, findBottmHeight, findButtonHeight, findButtonWidth,
   findFontSize, iniObj, mojiStack, pgObj, speakStack, writeFile, writeLog,
 } from './comFunc';
+import { styles } from './index';
 
 export let freeTextScn = 14; // フリーテキストに使用している画面番号
 
@@ -180,14 +181,26 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     router.dismissTo('/')
   }
 
+  const textInputRef = useRef<TextInput>(null);
+
+  const handleFocus = () => {
+    textInputRef.current?.focus();
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView>
           <Stack.Screen options={{
             headerTitle: () => (
-              <Pressable onLongPress={() => router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'freeText' } })}>
-              <View style={{width:160}}>
-                <Text style={{alignSelf:'center', fontWeight:'bold',fontSize:( Dimensions.get('window').height < 1000 )? 20:40}}>
+              <Pressable onLongPress={() => {
+                writeFile();
+                (!isFromConifigScn)?
+                router.push({ pathname: "/helpFreeText", params: { post: scnNum, from: originScn } })
+                :
+                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: originScn } })
+              }} >
+              <View style={styles.headerTitle}>
+                <Text style={styles.headerText}>
                   {scnNum === freeTextScn?'フリー':'ボタン追加/編集' }</Text>
               </View>
               </Pressable>
@@ -195,28 +208,21 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
             headerBackButtonDisplayMode:  'minimal' ,
             headerStyle: { backgroundColor: stylesFree.containerBottom.backgroundColor },
             headerRight:  () => ( 
-              !isFromConifigScn?
-              <Pressable onPressIn={() => {
+              <Pressable onPress={() => {
                 writeFile();
-                router.push({ pathname: "/helpFreeText", params: { post: scnNum, from: originScn } });
-              }}>
-                <View style={[stylesFree.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
-                  <Text style={{textAlign:'center' }}>ヘルプ</Text>
-                </View>
-              </Pressable>
-              :               
-              <Pressable onPressIn={() => {
-                writeFile();
-                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: originScn } });
-              }}>
-                <View style={[stylesFree.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
-                  <Text style={{textAlign:'center' }}>ヘルプ</Text>
+                (!isFromConifigScn)?
+                router.push({ pathname: "/configScrn", params: { post: scnNum, from: originScn } }) // フリーの設定
+                :
+                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: originScn } }) //　ヘルプへ
+              }} >
+                <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
+                  <Text style={{textAlign:'center' }}>{scnNum === freeTextScn?'設定':'ヘルプ' }</Text>
                 </View>
               </Pressable>
             ), 
             headerLeft:  () => ( 
-              <Pressable onPressIn={() => pgBack()}>
-                <View style={[stylesFree.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
+              <Pressable onPress={() => pgBack()}>
+                <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
                   <Text style={{textAlign:'center' }}>　＜　</Text>
                 </View>
               </Pressable> ),         
@@ -225,42 +231,49 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
           animationType="slide"
           transparent={true}
           visible={modalVisible} >
-          <ScrollView >
-          <View style={[stylesFree.centeredView,]}>
-              <View style={[stylesFree.modalView,  { height:Dimensions.get('window').height*6/7-20 ,
-                  transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
-                {(dispText.length === 1 ) ?
-                  (dispText.map((moji, index) => <Text key={index} 
-                    style={[stylesFree.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>)) :         
-                  (mojiStack.map((moji, index) => <Text key={index} 
-                    style={[stylesFree.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>))
-                }
-              </View>
+            <View style={[styles.modalView,  { height:Dimensions.get('window').height-styles.modalButton.height-70 ,
+                transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
+              {(dispText.length === 1 ) ?
+                (dispText.map((moji, index) => <Text key={index} 
+                  style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>)) :         
+                (mojiStack.map((moji, index) => <Text key={index} 
+                  style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>))
+              }
+            </View>
+            <View style={[styles.modalView]}>
               <Pressable onPress={() => {Speech.stop(); setModalVisible(false)}} >
-                <View style={[stylesFree.modalButton, { width: Dimensions.get('window').width, 
+                <View style={[styles.modalButton, { width: Dimensions.get('window').width, 
                     backgroundColor:iniObj.controlButtonColor }]}>
                   <Text style={{ fontSize: findFontSize(scnNum, 3)-6 }}>閉じる</Text>
                 </View>
               </Pressable>
             </View>
-          </ScrollView>
         </Modal>
         <Text style={{fontSize:20, textAlign:'center'}}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle}</Text> 
         <View>
           <TextInput style={[stylesFree.textInput,{width: Dimensions.get('window').width, 
             height:(Dimensions.get('window').height < 1000)?60:140,
             fontSize:findFontSize(scnNum, 3) } ]}
+            ref={textInputRef}
             autoFocus={scnNum===freeTextScn?true:false}
             multiline={true}
             onChangeText={(text)=>setTextInput(text)} 
-            value={textInput} />
+            value={textInput} 
+            />
         </View>
         <View  style={[stylesFree.containerBottom,{width: Dimensions.get('window').width, height:findBottmHeight(scnNum)*0.8+30} ]}>
           <MoveButton name='＜' onPress={() => {pgBack()}}
             width={Dimensions.get('window').width/3-12}/>
-          <MoveButton name='クリア' onPress={() => {setTextInput('');}} onLongPress={() => {onLongPressClear() }}
+          <MoveButton name='クリア' 
+            onPress={() => {
+              setTextInput('');
+              handleFocus(); }} 
+            onLongPress={() => {onLongPressClear() }}
             width={ Dimensions.get('window').width/3-12 } />
-          <MoveButton name='発声/追加' onPress={() => {onPressSay()}} 
+          <MoveButton name='発声/追加' 
+            onPress={() => {
+              handleFocus();
+              onPressSay()}} 
             onLongPress={() => {router.push({ pathname: "/freeText0", params: { post: scnNum, from: 'freeText' } })
             }}
             width={ Dimensions.get('window').width/3-12 } />

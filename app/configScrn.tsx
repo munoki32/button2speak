@@ -118,19 +118,25 @@ export default function configScrn(){ // 画面設定・フリー設定
   return(
   <SafeAreaProvider>
       <Stack.Screen options={{
-        title: scnNum.toString()+':' + pgObj[scnNum].pgTitle +' 設定',
-        headerTitleAlign: 'center',
-        headerBackTitle: '',
+        headerTitle: () => (
+          <Pressable onPress={() => {
+            router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })
+          }} >
+          <View style={styles.headerTitle}>
+            <Text style={styles.headerText}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle +' 設定'}</Text>
+          </View>
+          </Pressable>
+        ),
         headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
         headerLeft:  () => ( 
-          <Pressable onPressIn={() => pgBack()}>
+          <Pressable onPress={() => pgBack()}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center' }}>＜</Text>
             </View>
           </Pressable> 
         ), 
         headerRight:  () => ( 
-          <Pressable onPressIn={() => router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })}>
+          <Pressable onPress={() => router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
             </View>
@@ -182,7 +188,8 @@ export default function configScrn(){ // 画面設定・フリー設定
           </TouchableHighlight>
           <TouchableHighlight onPress={ () => {onPressConfigText()}} >
             <View style={[stylScrnConf.button,{width: Dimensions.get('window').width/2-5} ]}>
-              <Text style={stylScrnConf.text}>「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」画面エディタ</Text>
+              <Text style={stylScrnConf.text}>{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}</Text>
+              <Text style={stylScrnConf.text}>画面エディタ</Text>
             </View>
           </TouchableHighlight>
           { scnNum !== freeTextScn?
@@ -300,7 +307,7 @@ export default function configScrn(){ // 画面設定・フリー設定
     <SafeAreaView  style={[styles.containerBottom ]}>
       <TouchableHighlight onPress={ ()  => { pgBack() }} >
           <View style={[stylScrnConf.bottomButton,{height: stylScrnConf.button.height}]}>
-          <Text style={[stylScrnConf.text, {fontSize:18}]}>戻る</Text>
+          <Text style={[stylScrnConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>戻る</Text>
         </View>
       </TouchableHighlight>
     </SafeAreaView>
@@ -312,7 +319,8 @@ function ClearFree(){
   return(
           <View style={stylScrnConf.switchContainer} >
             <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
-              <Text style={[stylScrnConf.switchText, {width:250, paddingTop:15}]}>フリーテキストは発声後クリア</Text>
+              <Text style={[stylScrnConf.switchText,
+                 {width:280, height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>フリーテキストは発声後クリア</Text>
             </TouchableHighlight>
             <Switch style={stylScrnConf.switch}
               onValueChange = {()=> {setfreeTextClear(!freeTextClear);
@@ -367,23 +375,23 @@ export const stylScrnConf = StyleSheet.create({
   text: {
     color: styles.text.color,
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
   },
   switchContainer: {
     flex: 1,
     flexWrap: 'wrap',
     alignItems: 'center',       //上下位置
-    justifyContent: 'flex-end', //左右位置
+    justifyContent: 'flex-start', //左右位置
     flexDirection:'row',
     width: Dimensions.get('window').width,
   },
   switchText:{
-    width: 200, 
+    width: Dimensions.get('window').width < 1000? 200:400, 
     textAlign: 'left',
     textAlignVertical: 'center',
     height: 40,
-    fontSize: 18,
-    marginTop:Platform.OS === 'ios'?  -37: -48,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
+    marginTop:Platform.OS === 'ios'?  Dimensions.get('window').width < 1000? -35 : -50 : -48,
   },
     switch: {
     marginLeft: 10,
@@ -392,28 +400,28 @@ export const stylScrnConf = StyleSheet.create({
     // paddingTop: Platform.OS === 'ios' ? -40: 0 ,
   },
     textInput: {
-    width: Dimensions.get('window').width-100,
+    width:  Dimensions.get('window').width < 1000? Dimensions.get('window').width-100:Dimensions.get('window').width-200,
     height: 40,
     borderWidth: 0.5,
     paddingLeft: 5,
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     marginTop:10,
   },
 });
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 20,
+    fontSize: Dimensions.get('window').width < 1000? 20: 36,
     paddingVertical: 12,
     paddingHorizontal: 5,
     paddingRight: 30, // to ensure the text is never behind the icon
     width: 150,
-    marginLeft: 200,
+    marginLeft: Dimensions.get('window').width < 1000? 200:400,
     marginTop: 5,
     pointerEvents:'none',
   },
   inputAndroid: {
-    fontSize: 16,
+    fontSize: Dimensions.get('window').width < 1000? 16: 36,
     paddingRight: 30, // to ensure the text is never behind the icon
     width: 150,
     marginLeft: 180,

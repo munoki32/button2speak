@@ -36,14 +36,14 @@ return (
 		title: '応援', 
     headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
     headerLeft:  () => ( 
-      <Pressable onPressIn={() => router.back()}>
+      <Pressable onPress={() => router.back()}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center' }}>＜</Text>
         </View>
       </Pressable> 
     ),      
     headerRight:  () => ( 
-      <Pressable onPressIn={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
+      <Pressable onPress={() => router.push({ pathname: "/help", params: { post: scnNum } })}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
         </View>

@@ -357,26 +357,27 @@ async function setVol(vol:number) {
       <SafeAreaView>
         <Stack.Screen options={{
           headerTitle: () => (
-            <Pressable onLongPress={() => router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } })}>
-            <View style={{width:160}}>
-              <Text style={{alignSelf:'center', fontWeight:'bold',fontSize:( Dimensions.get('window').height < 1000 )? 20:40}}>
-                {pgObj[scnNum].pgTitle}</Text>
-            </View>
+            <Pressable onLongPress={() => router.push({ pathname: "/helpIndex", params: { post: scnNum, from: 'index' } })}>
+              <View style={styles.headerTitle}>
+                <Text style={styles.headerText}>
+                  {pgObj[scnNum].pgTitle}</Text>
+              </View>
             </Pressable>
           ),
           headerBackButtonDisplayMode:  'minimal' ,
           headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable 
-              onPressIn={() => { router.push({ pathname: "/configApp", params: { post: scnNum, from: 'index' } }); }}>
+              onPress={() => { router.push({ pathname: "/configApp", params: { post: scnNum, from: 'index' } }); }}
+              onLongPress={() => {router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } });}}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
                 <Text style={{textAlign:'center' }}>設定</Text>
               </View>
             </Pressable> ), 
           headerLeft:  () => ( 
-            <Pressable onPressIn={() => pgBack()}>
+            <Pressable onPress={() => pgBack()}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
-                <Text style={{textAlign:'center' }}>　＜　</Text>
+                <Text style={{textAlign:'center' }}>＜</Text>
               </View>
             </Pressable> ),         
         }} />
@@ -384,25 +385,23 @@ async function setVol(vol:number) {
           animationType="slide"
           transparent={true}
           visible={modalVisible} >
-          <ScrollView >
-          <View style={[styles.centeredView,]}>
-              <View style={[styles.modalView,  { height:Dimensions.get('window').height*6/7-20 ,
-                  transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
-                {(dispText.length === 1 ) ?
-                  (dispText.map((moji, index) => <Text key={index} 
-                    style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>)) :         
-                  (mojiStack.map((moji, index) => <Text key={index} 
-                    style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>))
-                }
-              </View>
-              <Pressable onPress={() => {Speech.stop(); setModalVisible(false)}} >
-                <View style={[styles.modalButton, { width: Dimensions.get('window').width, 
-                    backgroundColor:iniObj.controlButtonColor, }]}>
-                  <Text style={{ fontSize: findFontSize(scnNum, 3)-6 }}>閉じる</Text>
-                </View>
-              </Pressable>
+            <View style={[styles.modalView,  { height:Dimensions.get('window').height-styles.modalButton.height-70 ,
+              transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
+              {(dispText.length === 1 ) ?
+                (dispText.map((moji, index) => <Text key={index} 
+                  style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>)) :         
+                (mojiStack.map((moji, index) => <Text key={index} 
+                  style={[styles.modalText, {fontSize:findFontSize(scnNum, 3)}]}>{moji}</Text>))
+              }
             </View>
-          </ScrollView>
+          <View style={[styles.modalView]}>
+            <Pressable onPress={() => {Speech.stop(); setModalVisible(false)}} >
+              <View style={[styles.modalButton, { width: Dimensions.get('window').width, 
+                  backgroundColor:iniObj.controlButtonColor, }]}>
+                <Text style={{ fontSize: findFontSize(scnNum, 3)-6 }}>閉じる</Text>
+              </View>
+            </Pressable>
+          </View>
         </Modal>
         <View style={[styles.button, {backgroundColor:styles.container.backgroundColor, borderWidth:0, 
           width:Dimensions.get('window').width, height: 20}]} />
@@ -542,40 +541,51 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: 'gary',
     borderWidth: 1,   //ここで全ての操作ボタンのボーダーが変わる
-
+  },
+  headerTitle: {
+    width:Dimensions.get('window').width < 1000? 170:300,
+    height:35,
+    alignItems:'center',
+    justifyContent:'center',
+  },
+  headerText: {
+    // alignSelf:'center', 
+    // textAlignVertical:'center',
+    // fontWeight:'bold',
+    fontSize:( Dimensions.get('window').height < 1000 )? 22:32
   },
   headerButton: {
     backgroundColor:'#ddff99' ,
     width:80, 
-    height:40, 
+    height:35, 
     justifyContent:'center', 
+    alignContent:'center',
     borderRadius: 15,
     borderColor: 'gray',
     borderWidth: 1,   //ここで全てのヘダーボタンのボーダーが変わる
   },
-  centeredView: {
-    alignItems:'center',      //　modalViewの水平位置
-  },
   modalView: {
-    width:'98%',              // 表示の幅
-    marginTop:10,             // 上からの位置
+    width:'100%',              // 表示の幅
+    marginTop:5,             // 上からの位置
     marginBottom:0,           //　下のボタンとの間隔
     backgroundColor:'whitesmoke',
     borderRadius:15,
-    height: Dimensions.get('window').height*6/7-20,
+    // height: Dimensions.get('window').height,
     alignItems:'center',      // 文字の左右位置
     justifyContent: 'center', // 文字の上下位置
   },
   modalText: {
     margin:5,                 //テキストの上下間隔、改行間隔
     fontSize: 32,
+    textAlignVertical:'center',
+    // alignSelf:'center',
   },
   modalButton: {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ddff99',
     width: Dimensions.get('window').width,
-    height: (Dimensions.get('window').height)/6,
+    height: (Dimensions.get('window').height)/8,
     borderRadius: 15,
     borderColor: 'gray',
     borderWidth: 1,  

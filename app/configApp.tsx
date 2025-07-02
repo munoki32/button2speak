@@ -154,19 +154,25 @@ export default function configApp(){ //全体の設定
   return(
   <SafeAreaProvider>
       <Stack.Screen options={{
-        title: '全体の設定',
-        headerTitleAlign: 'center',
-        headerBackTitle: '',
+        headerTitle: () => (
+          <Pressable onLongPress={() => {
+            router.push({ pathname: "/helpConfigApp", params: { post: scnNum } })
+          }} >
+          <View style={styles.headerTitle}>
+            <Text style={styles.headerText}>全体の設定</Text>
+          </View>
+          </Pressable>
+        ),
         headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
         headerLeft:  () => ( 
-          <Pressable onPressIn={() => pgBack()}>
+          <Pressable onPress={() => pgBack()}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center' }}>＜</Text>
             </View>
           </Pressable> 
         ), 
         headerRight:  () => ( 
-          <Pressable onPressIn={() => router.push({ pathname: "/helpConfigApp", params: { post: scnNum } })}>
+          <Pressable onPress={() => router.push({ pathname: "/helpConfigApp", params: { post: scnNum } })}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
             </View>
@@ -231,7 +237,8 @@ export default function configApp(){ //全体の設定
             }},  ])
           }} >
           <View style={[stylAppConf.button ]}>
-            <Text style={[stylAppConf.text]}>クリップボードへ定義をコピーする</Text>
+            <Text style={[stylAppConf.text]}>クリップボードへ</Text>
+            <Text style={[stylAppConf.text]}>定義をコピーする</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight  onPress={ ()  => { 
@@ -242,7 +249,8 @@ export default function configApp(){ //全体の設定
               }}, ])
           }} >
           <View style={[stylAppConf.button]}>
-            <Text style={[stylAppConf.text]}>クリップボードから定義を読込む</Text>
+            <Text style={[stylAppConf.text]}>クリップボードから</Text>
+            <Text style={[stylAppConf.text]}>定義を読込む</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ () => {
@@ -273,7 +281,8 @@ export default function configApp(){ //全体の設定
            }}
           >
           <View style={[stylAppConf.button]}>
-            <Text style={[stylAppConf.text]}>定義を保存/シェアする</Text>
+            <Text style={[stylAppConf.text]}>定義を保存/</Text>
+            <Text style={[stylAppConf.text]}>シェアする</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onPress={ () => {
@@ -287,22 +296,8 @@ export default function configApp(){ //全体の設定
             <Text style={[stylAppConf.text]}>定義を読込む</Text>
           </View>
         </TouchableHighlight>
-        <TouchableHighlight onPress={ () => {
-          if (iniObj.changeVol) {
-            setVol(sliderValue)
-          } else {
-            setVol(orgVol)
-          }
-          router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } });
-          }} >
-          <View style={[stylAppConf.button, {width:Dimensions.get('window').width, 
-            backgroundColor:stylAppConf.bottomButton.backgroundColor}]}>
-            <Text style={[stylAppConf.text]}>画面「{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}」の設定へ</Text>
-          </View>
-        </TouchableHighlight>
 
         <View style={stylAppConf.switchContainer} >
-
           <TouchableHighlight onPress={ () => { setTextOnSpeak(!textOnSpeak) }}>
             <Text style={stylAppConf.switchText}>発声時に文字を表示する</Text>
           </TouchableHighlight>
@@ -395,11 +390,19 @@ export default function configApp(){ //全体の設定
     </ScrollView>
     </SafeAreaView>
     <SafeAreaView  style={[styles.containerBottom ]}>
-    <TouchableHighlight onPress={ ()  => { pgBack() }} >
-         <View style={[stylAppConf.bottomButton,{height: stylAppConf.button.height}]}>
-        <Text style={[stylAppConf.text, {fontSize:18}]}>戻る</Text>
-      </View>
-    </TouchableHighlight>
+      <TouchableHighlight onPress={ ()  => { pgBack() }} >
+        <View style={[stylAppConf.bottomButton,{height: stylAppConf.button.height}]}>
+          <Text style={[stylAppConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>戻る</Text>
+        </View>
+      </TouchableHighlight>
+      <TouchableHighlight onPress={ () => {
+        router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } });
+        }} >
+        <View style={[stylAppConf.bottomButton,{height: stylAppConf.button.height}]}>
+          <Text style={[stylAppConf.text]}>{scnNum.toString() + ':' + pgObj[scnNum].pgTitle}</Text>
+          <Text style={[stylAppConf.text]}>設定</Text>
+        </View>
+      </TouchableHighlight>
     </SafeAreaView>
   </SafeAreaProvider>
   );
@@ -440,7 +443,7 @@ export const stylAppConf = StyleSheet.create({
       justifyContent: 'center',  //上下位置
       paddingHorizontal: 5, 
       paddingRight:0,
-      width: Dimensions.get('window').width,
+      width: Dimensions.get('window').width/2-5,
       height: 80,
       borderRadius: 15,
       borderColor:styles.buttonBottom.borderColor,
@@ -448,7 +451,7 @@ export const stylAppConf = StyleSheet.create({
       },
 
   text: {
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
     textAlign: 'center',
   },
@@ -472,7 +475,7 @@ export const stylAppConf = StyleSheet.create({
     textAlign: 'right',
     textAlignVertical: 'center',
     height: 60,
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     paddingTop: 7,
   },
   textInput: {
@@ -480,14 +483,14 @@ export const stylAppConf = StyleSheet.create({
     height: 40,
     borderWidth: 0.5,
     paddingLeft: 5,
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     marginTop:10,
   },
 });
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     paddingVertical: 12,
     paddingHorizontal: 5,
     paddingRight: 30, // to ensure the text is never behind the icon

@@ -4,7 +4,7 @@ import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableHighlight
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './index';
 
-export default function helpConfigApp(){
+export default function help(){
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -17,9 +17,9 @@ export default function helpConfigApp(){
 				headerBackButtonDisplayMode:  'minimal' ,
 				headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
 				headerRight:  () => (
-					<Pressable onPress={() => router.push('/help')}>
+					<Pressable onPress={() => router.push('/about')}>
 					<View style={[styles.headerButton, ]}>
-						<Text style={{textAlign:'center' }}>ヘルプ</Text>
+						<Text style={{textAlign:'center' }}>About</Text>
 					</View>
 					</Pressable> ),         
 				headerLeft:  () => ( 
@@ -33,14 +33,30 @@ export default function helpConfigApp(){
 			<ScrollView >
 						<Text style={stylesHelp.text}>
 {`---------------------------------------------
-フリーテキスト（自由入力＆発声）画面
+基本画面
 ---------------------------------------------
-●	上部の＜入力エリア＞に文字を入力し、＜発声＞ボタンを押すと発声します。
-内容はボタンとして蓄積します（蓄積は重複しません）設定のスイッチ(a)によって、入力エリアは自動的にクリアされるか、そのままに成ります。
-●	＜クリア＞ボタンを押すと入力エリアがクリアされます。（長押しで、全てのフリーボタンを消します。確認があります）
-●	＜発音＞入力エリアの内容を発音します。
-●	フリー画面から「フリー設定」を呼び出すとフリーについての設定が出来ます
-●	ボタンを長押しすると、そのボタンの「ボタン編集」画面に移ります
+発声ボタン（グレー）
+押すとボタン定義によって（以下のいずれかの動作）
+●	発声、発声＆遷移、遷移
+	※遷移の有るボタンはボタンの縁が濃い
+
+上部の（黄色）遷移ボタン
+●	＜'<'＞：前画面があれば戻ります（各画面共通）
+●	＜設定＞：全体設定に遷移します、長押しで画面設定に遷移します
+●	タイトルを長押しするとヘルプが表示されます（各画面共通）
+
+下部の（黄色）遷移ボタン
+●	＜'<'＞：前画面があれば戻ります
+●	＜もう一度＞：ホームからの一連の発声を、もう一度再生し、発生内容を画面上に表示します。
+	○	ホームから別の発声をすると以前の内容はクリアされます。
+	○	約1秒の「長押し」でクリアできます。
+	○	フリーテキストの発声が含まれるかは、設定のスイッチ(b)によります。
+●	＜フリー＞：フリーテキスト画面に遷移します。（長押しで旧フリーテキストに遷移）
+●	＜ホーム＞：ホーム画面に戻ります
+
+画面を「左にスライド」すると次の画面へ移動することが出来ます。「右にスライド」すると前の画面に移動します。
+各画面のタイトルを押すと各画面のヘルプが表示されます。
+画面の一番下の空白を長押しすると、この画面の「ボタン追加/編集」へ遷移します。
 
 `}
 					</Text>
@@ -81,7 +97,7 @@ export const stylesHelp = StyleSheet.create({
     borderWidth: styles.buttonBottom.borderWidth,
   },
 	text: {
-    fontSize: Dimensions.get('window').width < 1000? 18: 36,
+     fontSize: Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
   },
 });

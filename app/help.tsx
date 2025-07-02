@@ -17,13 +17,13 @@ export default function help(){
 				headerBackButtonDisplayMode:  'minimal' ,
 				headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
 				headerRight:  () => (
-					<Pressable onPressIn={() => router.push('/about')}>
+					<Pressable onPress={() => router.push('/about')}>
 					<View style={[styles.headerButton, ]}>
 						<Text style={{textAlign:'center' }}>About</Text>
 					</View>
 					</Pressable> ),         
 				headerLeft:  () => ( 
-					<Pressable onPressIn={() => router.back()}>
+					<Pressable onPress={() => router.back()}>
 					<View style={[styles.headerButton,]}>
 						<Text style={{textAlign:'center' }}>＜</Text>
 					</View>
@@ -221,7 +221,7 @@ d) フリーの画面から設定を呼び、画面の編集でタイトルを�
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text,{fontSize:18}]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>戻る</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

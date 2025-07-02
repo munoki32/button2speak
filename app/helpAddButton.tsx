@@ -17,13 +17,13 @@ export default function helpAddButton(){
 				headerBackButtonDisplayMode:  'minimal' ,
 				headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
 				headerRight:  () => (
-					<Pressable onPressIn={() => router.push('/about')}>
+					<Pressable onPress={() => router.push('/about')}>
 					<View style={[styles.headerButton, ]}>
 						<Text style={{textAlign:'center' }}>About</Text>
 					</View>
 					</Pressable> ),         
 				headerLeft:  () => ( 
-					<Pressable onPressIn={() => router.back()}>
+					<Pressable onPress={() => router.back()}>
 					<View style={[styles.headerButton,]}>
 						<Text style={{textAlign:'center' }}>＜</Text>
 					</View>
@@ -49,7 +49,7 @@ export default function helpAddButton(){
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text,{fontSize:18}]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>戻る</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>
@@ -80,7 +80,7 @@ export const stylesHelp = StyleSheet.create({
     borderWidth: styles.buttonBottom.borderWidth,
   },
 	text: {
-    fontSize: 14,
+    fontSize: Dimensions.get('window').width < 1000? 18: 36,
     color: styles.text.color,
   },
 });
