@@ -1,13 +1,13 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useIsFocused } from '@react-navigation/native';
 import { reloadAppAsync } from "expo";
-import { Audio } from 'expo-av';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert, Dimensions, Modal, Pressable, ScrollView, StatusBar, StyleSheet,
-  Text, TextInput, TouchableHighlight, View
+  Text, TextInput, TouchableHighlight,
+  View
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -18,15 +18,14 @@ import { styles } from './index';
 
 export let freeTextScn = 14; // フリーテキストに使用している画面番号
 
-export default function freeText(){ // フリー・ボタン追加/編集
+export default function addButton(){ // フリー・ボタン追加/編集
 
   const [textInput, setTextInput] = useState('');  // for TextInput area 初期値
   const router = useRouter();
   const isFocused = useIsFocused(); //これでrouter.backで戻ってきても再レンダリングされる
   const [changeScrn, setChangeScrn] = useState(true) //再レンダリング用
   const [modalVisible, setModalVisible] = useState(false);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-   
+  
   const { post, from } = useLocalSearchParams();  //  呼び出しの画面番号を受け取る
   let scnNum = 0;
   if (post) {
@@ -35,14 +34,7 @@ export default function freeText(){ // フリー・ボタン追加/編集
     writeLog(20, 'Err: freeText No post number');
     scnNum = 0;
   };
-  const originScn = scnNum; // save original screen  
-  freeTextScn = pgObj.findIndex(text => text.pgTitle === 'フリー') // find free text screen
-  // writeLog(10, 'findFreeTextScreen:' + freeTextScn);
-  if (freeTextScn < 0) { // no free text screen
-    pgObj.push({ pgTitle:'フリー', btnList:[], pgOption:'sort:dat row:8' }); // フリー画面の初期値
-    freeTextScn = pgObj.length - 1;
-  } 
-  scnNum = freeTextScn;  // セット　フリーテキストモード
+  
   buttonSort(scnNum);  // 20250616 sort after say
 
 function toDo(count:number) {   //発声ボタンが押された時の処理
@@ -111,7 +103,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
   
   function onLognPress(index:number){ // 
       setTextInput(pgObj[scnNum].btnList[index].moji);  //入力欄に表示
-      router.push({ pathname: "/editButton", params: { post: scnNum, from: index.toString(), originScn:originScn} });
+      router.push({ pathname: "/editButton", params: { post: scnNum, from: index.toString(), originScn:scnNum} });
   }
 
   function onPressSay(){ // 発声・追加ボタン
@@ -182,44 +174,6 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     textInputRef.current?.focus();
   };
 
-  async function replaySpeak(){
-    let speakText = ''
-    dispText.splice(0)
-    if (speakStack.length > 0) { 
-      Speech.stop()   //発声中にもう一度を押すと、モーダルが前の発声で閉じる問題の対応　25.04.02
-      setModalVisible(true)
-      speakStack.map((txt) => speakText += txt + ',') // 発音内容を一列につなぐ
-      if (iniObj.replayScrnHold) {
-        Speech.speak(speakText, {
-          language: "ja",
-          onDone: () => { 
-          }
-        });
-      } else {
-        Speech.speak(speakText, {
-            language: "ja",
-            onDone:() => {
-              setTimeout(() => { 
-              setModalVisible(false);
-            }, 1000)}
-        })
-      }
-    } else { playBeep1(); }
-  }
-  async function playDecision4() {
-    const { sound } = await Audio.Sound.createAsync(require('../assets/Decision4.mp3'));
-    setSound(sound);
-    await sound.playAsync();  }
-  async function playBeep1() {
-    const { sound } = await Audio.Sound.createAsync(require('../assets/Beep1.mp3'));
-    setSound(sound);
-    await sound.playAsync();  }
-  async function playDecisoin2() {
-    const { sound } = await Audio.Sound.createAsync(require('../assets/Decision2.mp3'));
-    setSound(sound);
-    await sound.playAsync();  }
-  useEffect(() => { return sound ? () => { sound.unloadAsync(); } : undefined; }, [sound]);
-
   return (
     <SafeAreaProvider>
       <SafeAreaView>
@@ -227,10 +181,10 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
             headerTitle: () => (
               <Pressable onLongPress={() => {
                 writeFile();
-                router.push({ pathname: "/helpFreeText", params: { post: scnNum, from: originScn } })
+                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: 'addButton' } })
               }} >
               <View style={styles.headerTitle}>
-                <Text style={styles.headerText}>フリー</Text>
+                <Text style={styles.headerText}>ボタン追加/編集</Text>
               </View>
               </Pressable>
             ),
@@ -239,10 +193,10 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
             headerRight:  () => ( 
               <Pressable onPress={() => {
                 writeFile();
-                  router.push({ pathname: "/configScrn", params: { post: scnNum, from: originScn } }) // フリーの設定
+                router.push({ pathname: "/helpAddButton", params: { post: scnNum, from: 'addButton' } }) // 
                 }} >
                 <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
-                  <Text style={{textAlign:'center' }}>設定</Text>
+                  <Text style={{textAlign:'center' }}>{scnNum === freeTextScn?'設定':'ヘルプ' }</Text>
                 </View>
               </Pressable>
             ), 
@@ -257,8 +211,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
           animationType="slide"
           transparent={true}
           visible={modalVisible} >
-            <View style={[styles.modalView,  
-            { height:Dimensions.get('window').height-styles.modalButton.height ,
+            <View style={[styles.modalView,  { height:Dimensions.get('window').height-styles.modalButton.height-70 ,
                 transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
               {(dispText.length === 1 ) ?
                 (dispText.map((moji, index) => <Text key={index} 
@@ -276,6 +229,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
               </Pressable>
             </View>
         </Modal>
+        <Text style={{fontSize:20, textAlign:'center'}}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle}</Text> 
         <View>
           <TextInput style={[stylesFree.textInput,{width: Dimensions.get('window').width, 
             height:(Dimensions.get('window').height < 1000)?60:140,
@@ -289,25 +243,18 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
         </View>
         <View  style={[stylesFree.containerMiddle,{width: Dimensions.get('window').width, height:findBottmHeight(scnNum)*0.8+30} ]}>
           <MoveButton name='＜' onPress={() => {pgBack()}}
-            width={Dimensions.get('window').width/4-12}/>
-          <MoveButton name='もう一度' 
-            onPress={() => { replaySpeak();}}
-            onLongPress={() => {
-                         speakStack.splice(0);
-                         mojiStack.splice(0);
-                         playDecisoin2(); }}
-            width={ Dimensions.get('window').width/4-12 } />
+            width={Dimensions.get('window').width/3-12}/>
           <MoveButton name='クリア' 
             onPress={() => {
               setTextInput('');
               handleFocus(); }} 
             onLongPress={() => {onLongPressClear() }}
-            width={ Dimensions.get('window').width/4-12 } />
+            width={ Dimensions.get('window').width/3-12 } />
           <MoveButton name='発声/追加' 
             onPress={() => {
               handleFocus();
               onPressSay()}} 
-            width={ Dimensions.get('window').width/4-12 } />
+            width={ Dimensions.get('window').width/3-12 } />
         </View>
         <ScrollView >
           <View style={[styles.container, { width: Dimensions.get('window').width }, ]} >
@@ -377,7 +324,7 @@ export const stylesFree = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 20,
   },
-  containerMiddle: {
+ containerMiddle: {
     flexDirection: 'row',
     position: 'relative',
     bottom: 0,
@@ -387,6 +334,5 @@ export const stylesFree = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Math.max((Dimensions.get('window').height)/9+20, 60),
     backgroundColor: 'white',
-
   },
 });

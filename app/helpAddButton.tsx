@@ -49,7 +49,7 @@ export default function helpAddButton(){
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>＜</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

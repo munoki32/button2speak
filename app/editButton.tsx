@@ -21,14 +21,14 @@ export default function editButton(){ // ボタンの編集
   }
   let buttonNum = 0;
   if (from) { 
-    // writeLog( 0, 'post:' + Number(from));
+    // writeLog(10, 'post:' + Number(from));
     buttonNum = Number(from);
   }
   let originScnNum = -2;
   if (originScn){
     originScnNum = Number(originScn)
   }
-  // writeLog( 0, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
+  // writeLog(10, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
 
   const [textInput, setTextInput] = useState(pgObj[scnNum].btnList[buttonNum].moji);  // for TextInput area 初期値
   const [speakInput, setSpeakInput] = useState(pgObj[scnNum].btnList[buttonNum].speak);  // for TextInput area 初期値
@@ -44,11 +44,11 @@ export default function editButton(){ // ボタンの編集
 
   const [selectScrn, setSelectScrn] = useState(scnNum===originScnNum?-1:originScnNum+1); //
   const [selectLink, setSelectLink] = useState(parseInt(pgObj[scnNum].btnList[buttonNum].tugi)+1); //
-  // writeLog( 0, 'Tugi:' +parseInt(pgObj[scnNum].btnList[buttonNum].tugi) + ' Link:' + selectLink );
+  // writeLog(10, 'Tugi:' +parseInt(pgObj[scnNum].btnList[buttonNum].tugi) + ' Link:' + selectLink );
 
   function moveButton(){
-    writeLog( 0, 'udpateButton:Link:' + selectLink);
-    writeLog( 0, 'updateButton:Move:' + selectScrn);
+    writeLog(20, 'udpateButton:Link:' + selectLink);
+    writeLog(20, 'updateButton:Move:' + selectScrn);
     if (setButton()){ // if target set (copied) 
       pgObj[scnNum].btnList.splice(buttonNum,1)  // remove current button
     }
@@ -57,8 +57,8 @@ export default function editButton(){ // ボタンの編集
   }
 
   function copyButton(){
-    writeLog( 0, 'copyButton:Link:' + selectLink);
-    writeLog( 0, 'copyButton:Move:' + selectScrn);
+    writeLog(20, 'copyButton:Link:' + selectLink);
+    writeLog(20, 'copyButton:Move:' + selectScrn);
     setButton();
     writeFile();
     router.back();
@@ -107,8 +107,8 @@ export default function editButton(){ // ボタンの編集
   }
 
   function updateButton(){
-    writeLog( 0, 'updateButton:Link:' + selectLink);
-    writeLog( 0, 'updateButton:Move:' + selectScrn);
+    writeLog(20, 'updateButton:Link:' + selectLink);
+    writeLog(20, 'updateButton:Move:' + selectScrn);
     pgObj[scnNum].btnList[buttonNum].moji = textInput;
     pgObj[scnNum].btnList[buttonNum].speak = speakInput;
     pgObj[scnNum].btnList[buttonNum].option = optionInput;
@@ -127,7 +127,7 @@ export default function editButton(){ // ボタンの編集
         <Stack.Screen options={{
           headerTitle: () => (
             <Pressable onLongPress={() => {
-              router.push({ pathname: "/helpEditButton", params: { post: scnNum } })
+              router.push({ pathname: "/helpEditButton", params: { post: scnNum, from:'editBUtton' } })
             }} >
             <View style={styles.headerTitle}>
               <Text style={styles.headerText}>ボタンの編集</Text>
@@ -138,7 +138,7 @@ export default function editButton(){ // ボタンの編集
           headerStyle: { backgroundColor:styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable onPress={() => {
-                  router.push({ pathname: "/helpEditButton", params: { post: scnNum } } );
+                  router.push({ pathname: "/helpEditButton", params: { post: scnNum, from:'editButton' } } );
             }}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor}]}>
                 <Text style={{textAlign:'center' }}>ヘルプ</Text>
@@ -193,7 +193,7 @@ export default function editButton(){ // ボタンの編集
             <RNPickerSelect 
               onValueChange={(value) => { 
                 setSelectScrn(value);
-                writeLog( 0, 'selectScrn:' + selectScrn + ' ' + value);
+                writeLog(20, 'selectScrn:' + selectScrn + ' ' + value);
               }} 
               items={scrnList}
               value={selectScrn}
@@ -215,7 +215,7 @@ export default function editButton(){ // ボタンの編集
               </View>
             </TouchableHighlight>
             <TouchableHighlight onPress={ () => {
-              writeLog( 0, 'move:' + selectScrn);
+              writeLog(20, 'move:' + selectScrn);
               moveButton()}} 
               disabled={(selectScrn < 0)?true:false}
               >
@@ -226,7 +226,7 @@ export default function editButton(){ // ボタンの編集
               </View>
             </TouchableHighlight>
             <TouchableHighlight  onPress={ () => {
-              writeLog( 0, 'copy:' + selectScrn);
+              writeLog(20, 'copy:' + selectScrn);
               copyButton()}}
               disabled={(selectScrn < 0)?true:false}
               >
@@ -237,8 +237,8 @@ export default function editButton(){ // ボタンの編集
               </View>
             </TouchableHighlight >
             <TouchableHighlight onLongPress={ () => {
-              writeLog( 0, 'delete:' + scnNum + ' ' + buttonNum);
-              writeLog( 0, 'delete:' + pgObj[scnNum].btnList[buttonNum].moji);
+              writeLog(20, 'delete:' + scnNum + ' ' + buttonNum);
+              writeLog(20, 'delete:' + pgObj[scnNum].btnList[buttonNum].moji);
               pgObj[scnNum].btnList.splice(buttonNum, 1);  //　エントリーを消す
               router.back();
             }} >

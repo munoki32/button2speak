@@ -17,9 +17,9 @@ export default function helpConfigApp(){
 				headerBackButtonDisplayMode:  'minimal' ,
 				headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
 				headerRight:  () => (
-					<Pressable onPress={() => router.push('/help')}>
+					<Pressable onPress={() => router.push('/about')}>
 					<View style={[styles.headerButton, ]}>
-						<Text style={{textAlign:'center' }}>ヘルプ</Text>
+						<Text style={{textAlign:'center' }}>about</Text>
 					</View>
 					</Pressable> ),         
 				headerLeft:  () => ( 
@@ -36,7 +36,8 @@ export default function helpConfigApp(){
 フリーテキスト（自由入力＆発声）画面
 ---------------------------------------------
 ●	上部の＜入力エリア＞に文字を入力し、＜発声＞ボタンを押すと発声します。
-内容はボタンとして蓄積します（蓄積は重複しません）設定のスイッチ(a)によって、入力エリアは自動的にクリアされるか、そのままに成ります。
+内容はボタンとして追加されます（重複はしません）設定のスイッチ(a)によって、入力エリアは自動的にクリアされるか、そのままに成ります。
+※設定＜画面順＞を定義順、または使用順にすると、追加されたボタンが上位に表示されます
 ●	＜クリア＞ボタンを押すと入力エリアがクリアされます。（長押しで、全てのフリーボタンを消します。確認があります）
 ●	＜発音＞入力エリアの内容を発音します。
 ●	フリー画面から「フリー設定」を呼び出すとフリーについての設定が出来ます
@@ -50,7 +51,7 @@ export default function helpConfigApp(){
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>＜</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

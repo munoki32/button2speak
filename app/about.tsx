@@ -88,7 +88,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OU
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>＜</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

@@ -31,31 +31,31 @@ export default function paySupport(){
       } else if (Platform.OS === 'android') {
         // Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
       } 
-      writeLog(0, 'Purchase configured:' + iniObj.userId)
+      writeLog(20, 'Purchase configured:' + iniObj.userId)
       try{
         const init = async () => { 
           if (iniObj.userId !== '') { 
             const { customerInfo } = await Purchases.logIn(iniObj.userId); 
-            writeLog(0, 'configPay login:' + iniObj.userId)
-            writeLog(0, 'Login customer:' + customerInfo.originalAppUserId)
-            // writeLog(0, 'getCustomer:' + customerInfo.allPurchasedProductIdentifiers)
+            writeLog(20, 'configPay login:' + iniObj.userId)
+            writeLog(20, 'Login customer:' + customerInfo.originalAppUserId)
+            // writeLog(10, 'getCustomer:' + customerInfo.allPurchasedProductIdentifiers)
           }
           const info = (await Purchases.getCustomerInfo());
-          // writeLog(0, 'getCustomer:' + JSON.stringify(Info))
-          writeLog(0, 'getCustomer:' + info.originalAppUserId)
-          writeLog(0, 'getCustomer:' + info.allPurchasedProductIdentifiers)
+          // writeLog(10, 'getCustomer:' + JSON.stringify(Info))
+          writeLog(20, 'getCustomer:' + info.originalAppUserId)
+          writeLog(20, 'getCustomer:' + info.allPurchasedProductIdentifiers)
           custProd = info.allPurchasedProductIdentifiers
           custID = info.originalAppUserId
           setCustomerInfo(info)
 
           const offerings = await Purchases.getOfferings();
-          writeLog(0, 'getOfferings:' + offerings.current?.availablePackages.map((item,i) => item.product.identifier ));
-          // writeLog(0, 'getOfferings:' + JSON.stringify(offerings.current?.availablePackages) );
+          writeLog(20, 'getOfferings:' + offerings.current?.availablePackages.map((item,i) => item.product.identifier ));
+          // writeLog(10, 'getOfferings:' + JSON.stringify(offerings.current?.availablePackages) );
           setCurrentOffering(offerings.current);
         }
         init();
       } catch (e) {
-            writeLog( 0, 'Revenue cat error:' + e);
+            writeLog(20, 'Revenue cat error:' + e);
       }
     }, []);
 
@@ -67,20 +67,20 @@ export default function paySupport(){
   if (post) {
     scnNum = Number(post);
   } else {
-    writeLog( 0, 'Err: configScrn No post number');
+    writeLog(20, 'Err: configScrn No post number');
     scnNum = 0;
   };
 
   const onPressPurchase = async (item: PurchasesPackage) => {
     try {
       // ここで購入しています
-        writeLog(0, 'purchase:' + JSON.stringify(item.product))
+        writeLog(20, 'purchase:' + JSON.stringify(item.product))
         const { customerInfo: _customerInfo, productIdentifier } = await Purchases.purchasePackage(item)
     } catch (e: any) {
       // if (!e.userCancelled) {
       //   console.log(e);
       // } 
-      writeLog(0, 'purchase:' + e);
+      writeLog(20, 'purchase:' + e);
     } 
   };
 
@@ -103,7 +103,7 @@ return (
       </Pressable> 
     ),      
     headerRight:  () => ( 
-      <Pressable onPress={() => router.push({ pathname: "/helpPaySupport", params: { post: scnNum } })}>
+      <Pressable onPress={() => router.push({ pathname: "/helpPaySupport", params: { post: scnNum, from:'paySupport' } })}>
         <View style={[styles.headerButton, ]}>
           <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
         </View>
@@ -126,7 +126,7 @@ return (
               <Text style={[stylPayConf.text,{color:custProd.includes(item.product.identifier)?'gray':'black'}]}>
                 {item.product.title + '：' + item.product.price.toFixed(2) + '円'}</Text>
                 <Text style={[stylPayConf.text,{color:'black'}]}>
-                {custProd.includes(item.product.identifier)?'「'+item.product.title + '」をありがとうございます':''} </Text>
+                {custProd.includes(item.product.identifier)?'「'+item.product.title + '」をありがとうございました':''} </Text>
             </View>
           </TouchableHighlight>      
           )}
@@ -134,22 +134,19 @@ return (
         </View>
       </SafeAreaView>
     </ScrollView>
-    <SafeAreaView  style={[styles.containerBottom ]}>
-
-        <TouchableHighlight onPress={ ()  => { onPressRestore() }} >
-          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height}]}>
-            <Text style={[stylPayConf.text]}>復元</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={ ()  => { router.back() }} >
-          <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height}]}>
-          <Text style={[stylPayConf.text]}>戻る</Text>
-          </View>
-        </TouchableHighlight>
-
+    <SafeAreaView  style={[styles.containerBottom]}>
+      <TouchableHighlight onPress={ ()  => { router.back() }} >
+        <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height, width:Dimensions.get('window').width/2-7}]}>
+        <Text style={[stylPayConf.text, {fontSize:18}]}>＜</Text>
+        </View>
+      </TouchableHighlight>
+      <TouchableHighlight onPress={ ()  => { onPressRestore() }} >
+        <View style={[stylPayConf.bottomButton,{height: stylPayConf.button.height, width:Dimensions.get('window').width/2-7}]}>
+          <Text style={[stylPayConf.text, {fontSize:18}]}>復元</Text>
+        </View>
+      </TouchableHighlight>
     </SafeAreaView>
   </SafeAreaProvider>
-      
 );
 }
 

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { freeText, iniObj, makeLink, pgObj, removeDup, writeFile, writeLog } from './comFunc';
+import { iniObj, makeLink, pgObj, writeFile, writeLog } from './comFunc';
 import { freeTextScn } from './freeText';
 import { styles } from './index';
 
@@ -16,7 +16,7 @@ export default function configScrn(){ // 画面設定・フリー設定
   const [freeTextClear, setfreeTextClear] = useState(iniObj.freeTextClear)
   
   const sortList = [ // ソートの選択リスト
-    { label: '未設定', value: 'non' }, { label: '定義順', value: 'def' },
+    { label: '未設定', value: 'non' }, { label: '定義順', value: 'def' }, { label: '逆定義順', value: 'dfr' },
     { label: '使用順', value: 'dat' }, { label: '頻度順', value: 'cnt' }, ]
 
   const { post, from } = useLocalSearchParams();
@@ -24,23 +24,23 @@ export default function configScrn(){ // 画面設定・フリー設定
   if (post) {
     scnNum = Number(post);
   } else {
-    writeLog( 0, 'Err: configScrn No post number');
+    writeLog(20, 'Err: configScrn No post number');
     scnNum = 0;
   }
   // let originScnNum = 0;
   // if (from) { 
   //   originScnNum = Number(from);
-  //   writeLog( 0, 'configScrn from: ' + scnNum +'/' + originScnNum );
+  // writeLog(10, 'configScrn from: ' + scnNum +'/' + originScnNum );
   // }
 
   // 現在の頁のソート指定を読込む
   let pgSort = 'non';
-  // writeLog( 0, 'pgOption:' + pgObj[scnNum].pgOption);
+  // writeLog(10, 'pgOption:' + pgObj[scnNum].pgOption);
   let matchText = pgObj[scnNum].pgOption.match(/(^|^.*)(sort:)(...)($| .*$)/)
   if (matchText !== null && matchText[3] !== ''){
     pgSort=matchText[3]
   } ;
-  // writeLog( 0, 'pgOptionSort:' + pgSort + '/' +pgObj[scnNum].pgOption);
+  // writeLog(10, 'pgOptionSort:' + pgSort + '/' +pgObj[scnNum].pgOption);
   const [pageSort, setPageSort] = useState(pgSort)
   //　rowを読込む
   let pgRow = '6';
@@ -48,7 +48,7 @@ export default function configScrn(){ // 画面設定・フリー設定
   if (matchText !== null && matchText[3] !== ''){
     pgRow=matchText[3]
   } ;
-  // writeLog( 0, 'pgOptionRow:' + pgRow + '/' +pgObj[scnNum].pgOption);
+  // writeLog(10, 'pgOptionRow:' + pgRow + '/' +pgObj[scnNum].pgOption);
   const [pageRow, setPageRow] = useState(pgRow)
   //　colを読込む
   let pgCol = '2';
@@ -56,7 +56,7 @@ export default function configScrn(){ // 画面設定・フリー設定
   if (matchText !== null && matchText[3] !== ''){
     pgCol=matchText[3]
   } ;
-  // writeLog( 0, 'pgOptionCol:' + pgCol + '/' +pgObj[scnNum].pgOption);
+  // writeLog(10, 'pgOptionCol:' + pgCol + '/' +pgObj[scnNum].pgOption);
   const [pageCol, setPageCol] = useState(pgCol)
   // タイトル
   const [textInput, setTextInput] = useState(pgObj[scnNum].pgTitle);  // for TextInput area 初期値
@@ -66,46 +66,27 @@ export default function configScrn(){ // 画面設定・フリー設定
     router.push({ pathname: "/configText", params: { post: scnNum, from: 'configScrn' } });
   }
 
-  function addFreeText(){
-    if (pgObj[scnNum].pgTitle !== 'フリー') { return }
-    if (freeText[0].key === undefined) {
-      freeText.splice(0);
-      // writeFreeText();
-      Alert.alert('情報','旧フリーテキストが読めませんでした');
-      return;
-    }
-    for (let i = 0; i < freeText.length; i++){
-      if (freeText[i].value === '') {continue;}
-      let lastSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq), 0) + 1
-      pgObj[scnNum].btnList.push({moji: freeText[i].value, speak:'', 
-        tugi:'', option:' ', defSeq:lastSeq, usedDt:999-lastSeq, numUsed:999-lastSeq});
-      writeLog( 0, 'addFreeText:' + freeText[i].value + ' ' + lastSeq);
-      removeDup(scnNum);
-    }
-    Alert.alert('情報','フリーテキストを'+scnNum.toString()+':'+pgObj[scnNum].pgTitle +'に取り込みました');
-    writeFile();
-  }
-
   function applyConfiSetting(){
-    writeLog( 0, 'applyConfig:');
+    writeLog(20, 'applyConfig:');
   }
 
   function pgBack(){ 
     pgObj[scnNum].pgTitle = textInput;
     writeFile();
-    router.back();
+    scnNum === freeTextScn ? router.dismissTo({pathname:'/freeText', params: {post: scnNum, from:'configScrn'}}) 
+    :  router.dismissTo({pathname:'/', params: {post: scnNum, from:'configScrn' }});
   }
 
   function delScn(scn:number){
-    writeLog( 0, 'delScn:' + scn);
+    writeLog(20, 'delScn:' + scn);
     for (let i = 0; i < pgObj.length; i++) {
       for (let j = 0; j < pgObj[i].btnList.length; j++) {
         if (parseInt(pgObj[i].btnList[j].tugi) === scn) {
-          writeLog( 0, 'delScn:'+pgObj[i].btnList[j].moji+' remove' );
+          writeLog(20, 'delScn:'+pgObj[i].btnList[j].moji+' remove' );
           pgObj[i].btnList[j].tugi = ''
         }
         if (parseInt(pgObj[i].btnList[j].tugi) >= scn) {
-          writeLog( 0, 'delScn:' + pgObj[i].btnList[j].moji + 'renumber');
+          writeLog(20, 'delScn:' + pgObj[i].btnList[j].moji + 'renumber');
           pgObj[i].btnList[j].tugi = (parseInt(pgObj[i].btnList[j].tugi)-1).toString();
         }
       }
@@ -120,7 +101,7 @@ export default function configScrn(){ // 画面設定・フリー設定
       <Stack.Screen options={{
         headerTitle: () => (
           <Pressable onPress={() => {
-            router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })
+            router.push({ pathname: "/helpConfigScrn", params: { post: scnNum, from: 'configScrn'} })
           }} >
           <View style={styles.headerTitle}>
             <Text style={styles.headerText}>{scnNum.toString()+':' + pgObj[scnNum].pgTitle +' 設定'}</Text>
@@ -136,7 +117,7 @@ export default function configScrn(){ // 画面設定・フリー設定
           </Pressable> 
         ), 
         headerRight:  () => ( 
-          <Pressable onPress={() => router.push({ pathname: "/helpConfigScrn", params: { post: scnNum } })}>
+          <Pressable onPress={() => router.push({ pathname: "/helpConfigScrn", params: { post: scnNum, from:'configScrn' } })}>
             <View style={[styles.headerButton, ]}>
               <Text style={{textAlign:'center', fontSize:12 }}>ヘルプ</Text>
             </View>
@@ -169,21 +150,14 @@ export default function configScrn(){ // 画面設定・フリー設定
             </View>
           </TouchableHighlight>
           <TouchableHighlight onPress={ ()  => { 
-            scnNum !== freeTextScn ?
             Alert.alert('質問','「' + scnNum.toString() + ':' + pgObj[scnNum].pgTitle + '」にどこからもリンクされていない画面を登録しますか？', [
               { text: 'いいえ', onPress: () => {return} },
               { text: 'はい', onPress: () => { 
                 makeLink(scnNum)
               }}, ])
-              :
-            Alert.alert('質問','旧フリーテキストを取込みますか？', [
-              { text: 'いいえ', onPress: () => {return} },
-              { text: 'はい', onPress: () => { 
-              addFreeText()
-              }}, ])
             }} >
             <View style={[stylScrnConf.button,  {width: Dimensions.get('window').width/2-5} ]}>
-              <Text style={[stylScrnConf.text,]}>{scnNum !== freeTextScn ?'非リンク画面登録':'旧フリーの取込' }</Text>
+              <Text style={[stylScrnConf.text,]}>{'非リンク画面登録'}</Text>
             </View>
           </TouchableHighlight>
           <TouchableHighlight onPress={ () => {onPressConfigText()}} >
@@ -194,7 +168,7 @@ export default function configScrn(){ // 画面設定・フリー設定
           </TouchableHighlight>
           { scnNum !== freeTextScn?
           <TouchableHighlight disabled={scnNum===freeTextScn?true:false}
-            onPress={() => { router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } }) }} 
+            onPress={() => { router.push({ pathname: "/addButton", params: { post: scnNum, from: 'configScrn' } }) }} 
             >
             <View style={[stylScrnConf.button,{width: Dimensions.get('window').width,
               backgroundColor:stylScrnConf.bottomButton.backgroundColor} ]}>
@@ -241,7 +215,7 @@ export default function configScrn(){ // 画面設定・フリー設定
               // placeholder={{ label:'この画面の表示順', value: pageSort }}
               value={pageSort}
               />
-            <Text style={[stylScrnConf.switchText,]}>画面表示順</Text>
+            <Text style={[stylScrnConf.pickerText,]}>画面表示順</Text>
 
             <RNPickerSelect 
               onValueChange={(value) => {
@@ -251,7 +225,7 @@ export default function configScrn(){ // 画面設定・フリー設定
                 if (matchText !== null && matchText[2] !== '') {
                   if (value !== '') {
                     pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                    writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                    // writeLog( 1, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
                   } else {
                     pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
                   }
@@ -268,7 +242,7 @@ export default function configScrn(){ // 画面設定・フリー設定
               placeholder={{ label:'---', value: '' }}
               value={pageRow}
               />
-            <Text style={[stylScrnConf.switchText,]}>この画面の行数</Text>
+            <Text style={[stylScrnConf.pickerText,]}>この画面の行数</Text>
 
             <RNPickerSelect 
               onValueChange={(value) => {
@@ -278,7 +252,7 @@ export default function configScrn(){ // 画面設定・フリー設定
                 if (matchText !== null && matchText[2] !== '') {
                   if (value !== '') {
                     pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                    writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                    // writeLog( 1, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
                   } else {
                     pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
                   }
@@ -294,12 +268,18 @@ export default function configScrn(){ // 画面設定・フリー設定
               placeholder={{ label:'---', value: '' }}
               value={pageCol}
               />
-            <Text style={[stylScrnConf.switchText,]}>この画面の列数</Text>
-            { scnNum !== freeTextScn? 
-              <View></View>
-            :
-              <ClearFree/>
-            }
+            <Text style={[stylScrnConf.pickerText,]}>この画面の列数</Text>
+
+            <View style={stylScrnConf.switchContainer} >
+              <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
+                <Text style={[stylScrnConf.pickerText,
+                  {width:200, height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>入力は発声後クリア</Text>
+              </TouchableHighlight>
+              <Switch style={stylScrnConf.switch}
+                onValueChange = {()=> {setfreeTextClear(!freeTextClear);
+                  iniObj.freeTextClear = !freeTextClear; }} 
+                value = {freeTextClear} />
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -307,28 +287,19 @@ export default function configScrn(){ // 画面設定・フリー設定
     <SafeAreaView  style={[styles.containerBottom ]}>
       <TouchableHighlight onPress={ ()  => { pgBack() }} >
           <View style={[stylScrnConf.bottomButton,{height: stylScrnConf.button.height}]}>
-          <Text style={[stylScrnConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>戻る</Text>
+          <Text style={[stylScrnConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>＜</Text>
+        </View>
+      </TouchableHighlight>
+      <TouchableHighlight onPress={ () => {
+        router.push({ pathname: "/configApp", params: { post: scnNum, from: scnNum !== freeTextScn ? 'configScrn':'free' } });
+        }} >
+        <View style={[stylScrnConf.bottomButton,{height: stylScrnConf.button.height}]}>
+          <Text style={[stylScrnConf.text]}>全体設定</Text>
         </View>
       </TouchableHighlight>
     </SafeAreaView>
   </SafeAreaProvider>
   );
-
-function ClearFree(){
-
-  return(
-          <View style={stylScrnConf.switchContainer} >
-            <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
-              <Text style={[stylScrnConf.switchText,
-                 {width:280, height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>フリーテキストは発声後クリア</Text>
-            </TouchableHighlight>
-            <Switch style={stylScrnConf.switch}
-              onValueChange = {()=> {setfreeTextClear(!freeTextClear);
-                iniObj.freeTextClear = !freeTextClear; }} 
-              value = {freeTextClear} />
-          </View>
-        )
-}
 
 }
 export const stylScrnConf = StyleSheet.create({
@@ -366,7 +337,7 @@ export const stylScrnConf = StyleSheet.create({
       justifyContent: 'center',  //上下位置
       paddingHorizontal: 5, 
       paddingRight:0,
-      width: Dimensions.get('window').width,
+      width: Dimensions.get('window').width/2-5,
       height: 80,
       borderRadius: 15,
       borderColor:styles.buttonBottom.borderColor,
@@ -385,7 +356,7 @@ export const stylScrnConf = StyleSheet.create({
     flexDirection:'row',
     width: Dimensions.get('window').width,
   },
-  switchText:{
+  pickerText:{
     width: Dimensions.get('window').width < 1000? 200:400, 
     textAlign: 'left',
     textAlignVertical: 'center',

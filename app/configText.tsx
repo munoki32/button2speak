@@ -18,11 +18,11 @@ export default function configText(){
   if (post) {
     scnNum = Number(post);
   } else {
-    writeLog( 0, 'Err: configText No post number');
+    writeLog(20, 'Err: configText No post number');
     scnNum = 0;
   };
   const numInput = 6;
-//  writeLog( 0, '5: configText flat');
+// writeLog(10, '5: configText flat');
 //  init tempObj & copy form pgObj
   tempObj.pgTitle = pgObj[scnNum].pgTitle
   tempObj.pgOption = pgObj[scnNum].pgOption
@@ -42,7 +42,7 @@ export default function configText(){
       tempObj.btnList.push({ moji:'', speak:'', tugi:'', option:'', defSeq:'' })
     }
   }
-//  writeLog( 0, '1:'+ offSet.toString() + ':' + tempObj.btnList.length.toString());
+// writeLog(10, '1:'+ offSet.toString() + ':' + tempObj.btnList.length.toString());
   
   const [pgTitle, setTitle] = useState(tempObj.pgTitle);
   const [pgOption, setPgOption] = useState(tempObj.pgOption);
@@ -69,20 +69,20 @@ export default function configText(){
       pgObj[scnNum].btnList[i+offSet].option = btnList[i].option.trim();
       pgObj[scnNum].btnList[i+offSet].defSeq = parseInt(btnList[i].defSeq);
     }
-//    writeLog( 0, 'onSave:'+offSet.toString() + ':' + tempObj.btnList.length.toString() + ':' + numConf.toString());
+// writeLog(10, 'onSave:'+offSet.toString() + ':' + tempObj.btnList.length.toString() + ':' + numConf.toString());
 if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.length ) {  // last screen? (offset+5: last entry of screen)
       removeDup(scnNum)
       writeFile();
-      router.dismissTo({ pathname: "/configApp", params: {post: scnNum }, });
+      router.dismissTo({ pathname: "/configApp", params: {post: scnNum, from:'configText' }, });
     } else {
       if (offSet + numInput*2 > tempObj.btnList.length) {  //頁追加
-//        writeLog( 0, 'add ' + offSet.toString() + ' len ' + tempObj.btnList.length.toString());
+// writeLog(10, 'add ' + offSet.toString() + ' len ' + tempObj.btnList.length.toString());
         for (let i = 0 ; i < numInput; i++) {
           tempObj.btnList.push({moji:'', speak:'', tugi:'', option:'', defSeq:''})
         }
       }
       setBtnList(tempObj.btnList.slice(offSet+numInput, offSet+numInput*2))
-//      writeLog( 0, 'nextBtnList' + JSON.stringify(btnList));
+// writeLog(10, 'nextBtnList' + JSON.stringify(btnList));
       setOffSet(offSet + numInput)
     }
   }
@@ -113,7 +113,7 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
 //    isClickThreshold: 5,
   };
   function onSwipeLeft(){
-//    writeLog( 0, 'left');
+// writeLog(10, 'left');
     setModalVisible(true) 
   }
   function onSwipeRight(){
@@ -131,9 +131,9 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
     <SafeAreaView style={stylesConfText.container}>
       <Stack.Screen options={{
           headerTitle: () => (
-            <Pressable onLongPress={() => router.push({ pathname: "/helpConfigText", params: { post: scnNum, from: 'index' } })}>
+            <Pressable onLongPress={() => router.push({ pathname: "/helpConfigText", params: { post: scnNum, from: 'configText' } })}>
             <View style={styles.headerTitle}>
-              <Text style={[styles.headertext]}>
+              <Text style={[styles.headerText]}>
                 {scnNum.toString()+':'+tempObj.pgTitle+ ' 編集/' + (offSet/numInput + 1).toString()}</Text>
             </View>
             </Pressable>
@@ -178,7 +178,7 @@ if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.len
           <View>
             <TouchableHighlight onPress={() => onSwipeRight() } >
               <View style={[stylesConfText.button, {backgroundColor:iniObj.controlButtonColor, width:100}]}>
-                <Text>＜戻る</Text>
+                <Text>＜</Text>
               </View>
             </TouchableHighlight>
           </View>

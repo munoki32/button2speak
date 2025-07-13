@@ -50,8 +50,7 @@ export default function help(){
 ●	＜もう一度＞：ホームからの一連の発声を、もう一度再生し、発生内容を画面上に表示します。
 	○	ホームから別の発声をすると以前の内容はクリアされます。
 	○	約1秒の「長押し」でクリアできます。
-	○	フリーテキストの発声が含まれるかは、設定のスイッチ(b)によります。
-●	＜フリー＞：フリーテキスト画面に遷移します。（長押しで旧フリーテキストに遷移）
+●	＜フリー＞：フリーテキスト画面に遷移します。
 ●	＜ホーム＞：ホーム画面に戻ります
 
 画面を「左にスライド」すると次の画面へ移動することが出来ます。「右にスライド」すると前の画面に移動します。
@@ -66,7 +65,7 @@ export default function help(){
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>＜</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

@@ -9,10 +9,11 @@ import {
   Alert, Dimensions, Platform, Pressable, ScrollView, StyleSheet, Switch,
   Text, TouchableHighlight, View
 } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { VolumeManager } from 'react-native-volume-manager';
 import {
-  copyToClipboard, freeTextPath, iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
+  copyToClipboard, iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
   pgStack, shareFile, shareLog, storeCSVdata, writeFile, writeLog,
 } from './comFunc';
 import { orgVol, styles, } from './index';
@@ -27,13 +28,18 @@ export default function configApp(){ //全体の設定
   const [replayScrnHold, setReplayScrnHold] = useState(iniObj.replayScrnHold)
   const [writeLogFile, setWriteLogFile] = useState(iniObj.writeLogFile)
   const { post, from } = useLocalSearchParams();
+  const [logLevel, setLogLevel] = useState(iniObj.logLevel)
+
   let scnNum = 0;
   if (post) {
     scnNum = Number(post);
   } else {
-    writeLog( 0, 'Err: configScrn No post number');
+    writeLog(20, 'Err: configScrn No post number');
     scnNum = 0;
   };
+  // if (from) {
+  // writeLog(10, 'confgiApp: from:' + from)
+  // }
 
   const router = useRouter();
 
@@ -45,17 +51,17 @@ export default function configApp(){ //全体の設定
   }
   
   async function setVol(vol:number) {
-  //  writeLog( 0, 'new   Vol' + vol.toString());
-    writeLog( 0, 'setVoltoBe:' + vol.toString())
+  // writeLog(10, 'new   Vol' + vol.toString());
+    writeLog(20, 'setVoltoBe:' + vol.toString())
     VolumeManager.setVolume(vol/100 ,{showUI: false})
     const { volume } = await VolumeManager.getVolume();
-    writeLog( 0, 'setVolResuld:' + (volume*100).toString())
+    writeLog(20, 'setVolResuld:' + (volume*100).toString())
   }
   const readClip = async (scnNum:number) => {
     const csvBuff = await Clipboard.getStringAsync();
-    // writeLog( 0, 'readClip:' + csvBuff.substring(0,100));
+    // writeLog(10));
     pgStack.splice(0);
-    storeCSVdata(csvBuff, scnNum);
+    storeCSVdata(csvBuff);
     applyConfiSetting();
     writeFile();
     setChangeScrn(!changeScrn)
@@ -68,19 +74,19 @@ export default function configApp(){ //全体の設定
       type: 'text/plain',
     });
     if (result.assets !== null) {
-      // writeLog( 0, 'pickFile:', result.assets[0]);
+      // writeLog(10]);
       if (Platform.OS === 'web' ) { return }
       try {
         const csvBuff = await FileSystem.readAsStringAsync(result.assets[0].uri, {
         encoding: FileSystem.EncodingType.UTF8, });
-        // writeLog( 0, 'Store PickFile:' + result.assets[0].name + ' ' + result.assets[0].uri);
+        // writeLog(10].uri);
         pgStack.splice(0);
-        storeCSVdata(csvBuff, scnNum);
-        // writeLog( 0, 'pickFile:' + csvBuff.substring(0,100));
+        storeCSVdata(csvBuff);
+        // writeLog(10));
         applyConfiSetting();
       } catch (e) {
-        writeLog( 0, e);
-        writeLog( 0, 'pickFile Error:' + result.assets[0].name);
+        writeLog(20, e);
+        writeLog(20, 'pickFile Error:' + result.assets[0].name);
       }
       writeFile();
       setChangeScrn(!changeScrn)
@@ -98,15 +104,15 @@ export default function configApp(){ //全体の設定
           pgObj.splice(0); 
           pgObj.push({ pgTitle:'', btnList:[], pgOption:'' }) 
           pgStack.splice(0);
-          storeCSVdata(pgObjTxt, 0)
-          writeLog( 0, 'readOldFile:');
+          storeCSVdata(pgObjTxt)
+          writeLog(20, 'readOldFile:');
           writeFile();
           applyConfiSetting()
           setChangeScrn(!changeScrn)
           Alert.alert('定義を前に戻しました')
         } catch (e) {
-        writeLog( 0, e);
-        writeLog( 0, 'Read Old Error:' + pgObjPathOld + '\n');
+        writeLog(20, e);
+        writeLog(20, 'Read Old Error:' + pgObjPathOld + '\n');
       }
     } else {
       Alert.alert('情報','前のデータは有りません')
@@ -114,7 +120,7 @@ export default function configApp(){ //全体の設定
   };
   
   function applyConfiSetting(){
-    writeLog( 0, 'applyConfig:');
+    writeLog(20, 'applyConfig:');
     // setAddFreeStack(iniObj.addFreeStack);
     // setBtn3col(iniObj.btn3col);
     setTextOnSpeak(iniObj.textOnSpeak);
@@ -126,12 +132,11 @@ export default function configApp(){ //全体の設定
 
   const restoreInit = async () => {  // 初期化
     if (Platform.OS === 'web' ) { return }
-    writeLog( 0, 'restoreInit:');
+    writeLog(20, 'restoreInit:');
     if ((await FileSystem.getInfoAsync(pgObjPath)).exists) { await FileSystem.deleteAsync(pgObjPath)} 
     if ((await FileSystem.getInfoAsync(pgObjPathOld)).exists) { await FileSystem.deleteAsync(pgObjPathOld)} 
-    if ((await FileSystem.getInfoAsync(freeTextPath)).exists) { await FileSystem.deleteAsync(freeTextPath)} 
     if ((await FileSystem.getInfoAsync(iniObjPath)).exists) { await FileSystem.deleteAsync(iniObjPath)} 
-    // writeLog( 0, 'delFile2:');
+    // writeLog(10, 'delFile2:');
     initData()  // 空のデータにする
     writeFile()
     // writeIniObj()
@@ -142,13 +147,15 @@ export default function configApp(){ //全体の設定
   }
 
   function pgBack(){
-    if (iniObj.changeVol) {
-      setVol(sliderValue)
-    } else {
-      setVol(orgVol)
-    }
+    // if (iniObj.changeVol) {
+    //   setVol(sliderValue)
+    // } else {
+    //   setVol(orgVol)
+    // }
     writeFile();
-    router.back();
+    // router.back();
+    from === 'free' ? router.dismissTo({pathname:'/freeText', params: {post: scnNum, from:'configApp'}}) 
+    : router.dismissTo({pathname:'/', params: {post: scnNum, from:'configApp'}})
   }
 
   return(
@@ -198,7 +205,7 @@ export default function configApp(){ //全体の設定
           Alert.alert('質問','アプリケーションを初期に戻しますか？', [
             { text: 'いいえ', onPress: () => {return} },
             { text: 'はい', onPress: () => {
-              writeLog( 0, 'Reset Initial Start:');
+              writeLog(20, 'Reset Initial Start:');
             restoreInit();
             // reloadAppAsync();
           }}, ])}} >
@@ -217,9 +224,9 @@ export default function configApp(){ //全体の設定
           onPress={ ()  => { 
             router.push({ pathname: "/paySupport", params: { post: scnNum, from: 'configApp' } });
           }} 
-          onLongPress={ () => {
-            router.push({ pathname: "/payWall", params: { post: scnNum, from: 'configApp' } });
-          }}>
+          onLongPress={ ()  => { 
+            router.push({ pathname: "/paySupportDummy", params: { post: scnNum, from: 'configApp' } });
+          }} >
           <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
             <Text style={[stylAppConf.text, {color:Platform.OS !== 'ios'?'gray':'red'}]}>応援</Text>
           </View>
@@ -326,10 +333,10 @@ export default function configApp(){ //全体の設定
             setSliderValue(sliderValue>0?sliderValue - 1:sliderValue)
             if(iniObj.myVol>0){iniObj.myVol--}
            }}>
-            <Text style={[stylAppConf.switchText, { textAlign:'center', width:80, borderWidth:0, }]}>➖</Text>
+            <Text style={[stylAppConf.switchText, { textAlign:'center', width:40, borderWidth:0, }]}>➖</Text>
           </TouchableHighlight>
           <TouchableHighlight onPress={ () => { setChangeVol(!changeVol) }}>
-          <Text style={[stylAppConf.switchText, { textAlign:'center', width: 100, 
+          <Text style={[stylAppConf.switchText, { textAlign:'center', width: 150, 
             color:changeVol ? 'black' : 'gray'}]}>
             音量 {sliderValue.toFixed(0).toString()} </Text>
           </TouchableHighlight>
@@ -337,7 +344,7 @@ export default function configApp(){ //全体の設定
             setSliderValue(sliderValue<100?sliderValue + 1:sliderValue)
             if(iniObj.myVol<100){iniObj.myVol++}
             }}>
-            <Text style={[stylAppConf.switchText, { textAlign:'center', width:80, borderWidth:0, }]}>➕</Text>
+            <Text style={[stylAppConf.switchText, { textAlign:'center', width:30, borderWidth:0, }]}>➕</Text>
           </TouchableHighlight>
 
           <Switch style={stylAppConf.switch}
@@ -375,15 +382,27 @@ export default function configApp(){ //全体の設定
               }} 
               value = {useSlide} />
           </View>
-
-          <TouchableHighlight onPress={ () => { setWriteLogFile(!writeLogFile) }}>
-           <Text style={stylAppConf.switchText}>ログ出力</Text>
-          </TouchableHighlight>
-          <Switch style={stylAppConf.switch}
-            onValueChange = {()=> {setWriteLogFile(!writeLogFile);
-              iniObj.writeLogFile = !writeLogFile
-              }} 
-            value = {writeLogFile} />
+          <View>
+            <RNPickerSelect 
+              onValueChange={(value) => {
+                setLogLevel(value);
+                iniObj.logLevel = logLevel;
+              }}
+              items={[
+                {label:'無し', value:'99'},
+                {label:'全て', value:'0'},
+                {label:'詳細', value:'10'},
+                {label:'標準', value:'20'},
+                {label:'警告', value:'30'},
+                {label:'問題', value:'40'},
+                {label:'重大', value:'50'}, 
+                ]}
+              Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
+              style={pickerSelectStyles}
+              value={logLevel}
+              />
+            <Text style={[stylAppConf.pickerText,]}>ログレベル</Text>
+          </View>
         </View>
     </View>
     <View style={{height:100}}></View>
@@ -392,7 +411,7 @@ export default function configApp(){ //全体の設定
     <SafeAreaView  style={[styles.containerBottom ]}>
       <TouchableHighlight onPress={ ()  => { pgBack() }} >
         <View style={[stylAppConf.bottomButton,{height: stylAppConf.button.height}]}>
-          <Text style={[stylAppConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>戻る</Text>
+          <Text style={[stylAppConf.text, {fontSize:Dimensions.get('window').width < 1000? 18: 36,}]}>＜</Text>
         </View>
       </TouchableHighlight>
       <TouchableHighlight onPress={ () => {
@@ -478,29 +497,29 @@ export const stylAppConf = StyleSheet.create({
     fontSize: Dimensions.get('window').width < 1000? 18: 36,
     paddingTop: 7,
   },
-  textInput: {
-    width: 100,
+    pickerText:{
+    width: Dimensions.get('window').width < 1000? 200:400, 
+    textAlign: 'left',
+    textAlignVertical: 'center',
     height: 40,
-    borderWidth: 0.5,
-    paddingLeft: 5,
     fontSize: Dimensions.get('window').width < 1000? 18: 36,
-    marginTop:10,
+    marginTop:Platform.OS === 'ios'?  Dimensions.get('window').width < 1000? -35 : -50 : -48,
   },
 });
 
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: Dimensions.get('window').width < 1000? 18: 36,
+    fontSize: Dimensions.get('window').width < 1000? 20: 36,
     paddingVertical: 12,
     paddingHorizontal: 5,
     paddingRight: 30, // to ensure the text is never behind the icon
     width: 150,
-    marginLeft: 200,
+    marginLeft: Dimensions.get('window').width < 1000? 200:400,
     marginTop: 5,
     pointerEvents:'none',
   },
   inputAndroid: {
-    fontSize: 18,
+    fontSize: Dimensions.get('window').width < 1000? 16: 36,
     paddingRight: 30, // to ensure the text is never behind the icon
     width: 150,
     marginLeft: 180,

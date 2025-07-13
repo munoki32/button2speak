@@ -221,7 +221,7 @@ d) フリーの画面から設定を呼び、画面の編集でタイトルを�
 			<SafeAreaView>
 				<TouchableHighlight style={{alignItems:'center'}} onPress={ () => router.back() } >
 					<View style={[stylesHelp.button, ]}>
-						<Text style={[stylesHelp.text]}>戻る</Text>
+						<Text style={[stylesHelp.text]}>＜</Text>
 					</View>
 				</TouchableHighlight>
 			</SafeAreaView>

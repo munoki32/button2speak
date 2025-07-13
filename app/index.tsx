@@ -20,9 +20,6 @@ import {
   findFontSize, iniObj, mojiStack, pgObj, pgStack, readInitialFile, speakStack,
   writeFile, writeLog
 } from './comFunc';
-// import Purchases, {
-//   CustomerInfo, PurchasesOffering, PurchasesPackage
-// } from 'react-native-purchases';
 
 SplashScreen.preventAutoHideAsync();
 export let orgVol = 0 // save system volume level
@@ -38,22 +35,13 @@ export default function index(){
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   
   useEffect(() => {  // only once after 1st rendering
-
-      // if (Platform.OS === 'ios') {
-      //   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-      // }
-      // if (Platform.OS === 'ios') {
-      //   Purchases.configure({apiKey: 'appl_jdpXVGjdWJBVuRGkicsZOXBmPXv' });
-      // } else if (Platform.OS === 'android') {
-      //   // Purchases.configure({apiKey: 'appl_dcSptaIsDjlXUHVvpyeDSkNXLpA'});
-      // } 
-
       readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
       setScnNum(0);    // 画面をホームセット
       router.dismissTo('/'); //これをしないと初画面がブランク
-//      writeLog( 0, 'AppStartmyVol' + iniObj.myVol.toString());
-//      writeLog( 0, JSON.stringify(iniObj));// 機種によって（Freetel）はこれが読まれない
-      writeLog( 0, 'Start LogLevel:' + iniObj.logLevel.toString())
+      // buttonSort(0);
+      // writeLog(10, 'AppStartmyVol' + iniObj.myVol.toString());
+      // writeLog(10, JSON.stringify(iniObj));// 機種によって（Freetel）はこれが読まれない
+      writeLog(20, 'Start LogLevel:' + iniObj.logLevel.toString())
       if(Platform.OS !== 'ios') {saveVol();} // 音量を保存　  iosはActiveで呼ばれる
       aquireAudio(); // for android
       // if (iniObj.changeVol) {
@@ -84,18 +72,18 @@ export default function index(){
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
-//      if ( appState.current.match(/inactive|background/) && nextAppState === 'active' ) { writeLog( 0, 'App has come to the foreground!');   }
+// writeLog(10, 'App has come to the foreground!');   }
       appState.current = nextAppState;
-      // writeLog( 0, 'AppState', appState.current);
+      // writeLog(10, 'AppState', appState.current);
       if (appState.current === 'active') { 
-        writeLog( 0, 'Active:' + orgVol.toString())
+        writeLog(20, 'Active:' + orgVol.toString())
         saveVol()
         aquireAudio(); // for android
       } else {
-        writeLog( 0, 'Deactive:'+orgVol.toString())
+        writeLog(20, 'Deactive:'+orgVol.toString())
         if (iniObj.changeVol) {
           setVol(orgVol)/*.then(() => {  //以下のボリューム変更がOPPOで機能しない！！
-            writeLog( 0, 'volRest!:' + orgVol.toString()) }) */
+            writeLog(20, 'volRest!:' + orgVol.toString()) }) */
         }
         VolumeManager.setActive(false, true) // ios OK release audio
         releaseAudio(); // for android
@@ -107,6 +95,9 @@ export default function index(){
        releaseAudio();  // for android
     };
   }, []);
+
+  // writeLog(10, 'index called')
+  buttonSort(scnNum);
 
   const aquireAudio = async () => { // アンドロイドでバックグラウンドの音楽を止める
     if (Platform.OS !== 'android') { return; }
@@ -134,22 +125,20 @@ export default function index(){
 async function saveVol(){
   const { volume } = await VolumeManager.getVolume();
   orgVol = volume*100
-  writeLog( 0, 'saveVol:' + orgVol.toString().substring(0,5))
+  writeLog(20, 'saveVol:' + orgVol.toString().substring(0,5))
   VolumeManager.setCategory('SoloAmbient', false)
   VolumeManager.setMode('SpokenAudio')
   VolumeManager.setActive(true, true)
   if (iniObj.changeVol) {
     setVol(iniObj.myVol)
   }
-//  writeLog( 0, 'saved Vol' + orgVol.toString());
 }
 
 async function setVol(vol:number) {
-//  writeLog( 0, 'new   Vol' + vol.toString());
-  writeLog( 0, 'setVolto.:' + vol.toString().substring(0,5))
+  writeLog(20, 'setVol:start:' + vol.toString().substring(0,5))
   VolumeManager.setVolume(vol/100 ,{showUI: false})
   const { volume } = await VolumeManager.getVolume();
-  writeLog( 0, 'setVolend:' + (volume*100).toString().substring(0,5))
+  writeLog(20, 'setVol:end:' + (volume*100).toString().substring(0,5))
 }
 
   function toDo(index:number){
@@ -183,9 +172,8 @@ async function setVol(vol:number) {
     if (speakText !== '') {
       speakStack.push(speakText)
       mojiStack.push(pgObj[scnNum].btnList[index].moji)
-      // Speech.stop();
       const timeOutId = setTimeout(() => {
-        // writeLog( 0, 'speakTimeOut:' + speakText.length);
+        // writeLog(10, 'speakTimeOut:' + speakText.length);
         setModalVisible(false); 
         Alert.alert('エラー','音声が出ていませんか？、「はい」で再起動します', [
           { text: 'いいえ', onPress: () => {
@@ -241,9 +229,8 @@ async function setVol(vol:number) {
           setScnNum( nextPg )
         }
     }
-    buttonSort(scnNum)
+    // buttonSort(scnNum)
     setChangeScrn(!changeScrn); //画面の強制更新
-
   } // end of toDo
 
   function pgBack(){
@@ -315,7 +302,7 @@ async function setVol(vol:number) {
 //    isClickThreshold: 5, //5  Absolute distance that should be breached for the gesture to not be considered a click (dx or dy properties of gestureState)
   };
   function onSwipeLeft(){ //左から右へのスワイプ、画面次　なければ追加
-//    writeLog( 0, 'left');
+// writeLog(10, 'left');
     if (scnNum < pgObj.length - 1) {
       setScnNum(scnNum + 1);
     } else {
@@ -324,7 +311,7 @@ async function setVol(vol:number) {
     }
   }
   function onSwipeRight(){ //右から左にスワイプ、画面ー１、ホームはラストへ
-//    writeLog( 0, 'right');
+// writeLog(10, 'right');
     if (scnNum > 0) {
       setScnNum(scnNum - 1);
     } else {
@@ -332,14 +319,14 @@ async function setVol(vol:number) {
     }
   }
   function onConfigScrn(){ //　上のスワイプ
-//    writeLog( 0, 'UP');
-      router.push({ pathname: "/configScrn", params: { post: scnNum } });
+// writeLog(10, 'UP');
+      router.push({ pathname: "/configScrn", params: { post: scnNum, from:'index' } });
   }  
 
   function onLognPress(index:number){ //  ボタン編集
     let matchText = pgObj[scnNum].btnList[index].option.match(/.*(conf):(.+?)(\s+.*|$)/); // 止まらない
     if (matchText !== null && matchText[2] !== '' && matchText[2] === 'true') {
-      // writeLog( 0, 'onLongPress:' + matchText[2]);
+      // writeLog(10, 'onLongPress:' + matchText[2]);
       toDoSpeak(index)
     } else {
       // router.push({ pathname: "/editButton", params: { post: scnNum, from: index, originScn:-2 } }); 
@@ -368,8 +355,8 @@ async function setVol(vol:number) {
           headerStyle: { backgroundColor: styles.containerBottom.backgroundColor },
           headerRight:  () => (
             <Pressable 
-              onPress={() => { router.push({ pathname: "/configApp", params: { post: scnNum, from: 'index' } }); }}
-              onLongPress={() => {router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } });}}>
+              onLongPress={() => { router.push({ pathname: "/configApp", params: { post: scnNum, from: 'index' } }); }}
+              onPress={() => {router.push({ pathname: "/configScrn", params: { post: scnNum, from: 'index' } });}}>
               <View style={[styles.headerButton, {backgroundColor:iniObj.controlButtonColor, }]}>
                 <Text style={{textAlign:'center' }}>設定</Text>
               </View>
@@ -385,7 +372,8 @@ async function setVol(vol:number) {
           animationType="slide"
           transparent={true}
           visible={modalVisible} >
-            <View style={[styles.modalView,  { height:Dimensions.get('window').height-styles.modalButton.height-70 ,
+            <View style={[styles.modalView, 
+              {height:Dimensions.get('window').height-styles.modalButton.height ,
               transform:(iniObj.modalTextRotate) ? [{ rotate: '180deg' }] : [] } ] } >
               {(dispText.length === 1 ) ?
                 (dispText.map((moji, index) => <Text key={index} 
@@ -422,7 +410,7 @@ async function setVol(vol:number) {
                   </Text>
                 </View>
               </TouchableHighlight>  )}
-              <TouchableHighlight onLongPress={() => {router.push({ pathname: "/freeText", params: { post: scnNum, from: 'configScrn' } })} }>
+              <TouchableHighlight onLongPress={() => {router.push({ pathname: "/addButton", params: { post: scnNum, from: 'index' } })} }>
                 <View style={[styles.button, {backgroundColor:styles.container.backgroundColor, borderWidth:0, 
                   width:Dimensions.get('window').width, height: styles.button.height*2, justifyContent:'flex-start' }]} >
                   <Text style={{textAlign:'center', color:'#d3d3d3'}}>ボタン追加/編集</Text>
@@ -439,11 +427,12 @@ async function setVol(vol:number) {
             mojiStack.splice(0);
             playDecisoin2(); }}
             width={Dimensions.get('window').width/4-12}/>
-          <MoveButton name='フリー' onPress={() => { router.push({ pathname: "/freeText", params: { post: scnNum, from: 'index' } }) }}
-            onLongPress={() => {
-              router.push({ pathname: "/freeText", params: { post: scnNum, from: 'index' } })
-              // onConfigScrn()  
-            }} 
+          <MoveButton name='フリー' onPress={() => { 
+            if (scnNum === 0) {
+              speakStack.splice(0);
+              mojiStack.splice(0);
+            }
+            router.push({ pathname: "/freeText", params: { post: scnNum, from: 'index' } }) }}
             width={ Dimensions.get('window').width/4-12 }/>
           <MoveButton name='ホーム' onPress={() => {
               pgHome()
@@ -543,14 +532,11 @@ export const styles = StyleSheet.create({
     borderWidth: 1,   //ここで全ての操作ボタンのボーダーが変わる
   },
   headerTitle: {
-    width:Dimensions.get('window').width < 1000? 170:300,
+    width:Dimensions.get('window').width -190 ,
     height:35,
     alignItems:'center',
-    justifyContent:'center',
   },
   headerText: {
-    // alignSelf:'center', 
-    // textAlignVertical:'center',
     // fontWeight:'bold',
     fontSize:( Dimensions.get('window').height < 1000 )? 22:32
   },
@@ -567,7 +553,7 @@ export const styles = StyleSheet.create({
   modalView: {
     width:'100%',              // 表示の幅
     marginTop:5,             // 上からの位置
-    marginBottom:0,           //　下のボタンとの間隔
+    marginBottom:-20,           //　下のボタンとの間隔
     backgroundColor:'whitesmoke',
     borderRadius:15,
     // height: Dimensions.get('window').height,
