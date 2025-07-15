@@ -250,7 +250,7 @@ export default function configScrn(){ // 画面設定・フリー設定
               <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
                 <Text style={[stylScrnConf.pickerText,
                   {width:Dimensions.get("window").width-100,
-                   height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>入力は発声後クリア</Text>
+                   height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>入力は自動クリア（共通）</Text>
               </TouchableHighlight>
               <Switch style={stylScrnConf.switch}
                 onValueChange = {()=> {setfreeTextClear(!freeTextClear);
