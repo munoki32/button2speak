@@ -8,7 +8,8 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert, AppState, BackHandler, Dimensions, Linking, Modal, Platform, Pressable,
-  ScrollView, StatusBar, StyleSheet, Text, TouchableHighlight, useWindowDimensions, View
+  ScrollView, StatusBar, StyleSheet, Text, TouchableHighlight,
+  View
 } from 'react-native';
 // import Purchases from 'react-native-purchases';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -25,18 +26,16 @@ SplashScreen.preventAutoHideAsync();
 export let orgVol = 0 // save system volume level
 
 export default function index(){
-  const [scnNum, setScnNum] = useState(0)
+  const [scnNum, setScnNum] = useState(iniObj.homeScrn)
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
   const isFocused = useIsFocused(); //これでrouter.backで戻ってきても再レンダリングされる
   const [changeScrn, setChangeScrn] = useState(true) //再レンダリング用
-  const { height, width } = useWindowDimensions();
-  const isPortrait = height >= width;
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   
   useEffect(() => {  // only once after 1st rendering
       readInitialFile().then(() => { // ここで一旦データはリセットされ以前のデータを読込みます
-      setScnNum(0);    // 画面をホームセット
+      setScnNum(iniObj.homeScrn);    // 画面をホームセット
       router.dismissTo('/'); //これをしないと初画面がブランク
       // buttonSort(0);
       // writeLog(10, 'AppStartmyVol' + iniObj.myVol.toString());
@@ -76,11 +75,11 @@ export default function index(){
       appState.current = nextAppState;
       // writeLog(10, 'AppState', appState.current);
       if (appState.current === 'active') { 
-        writeLog(20, 'Active:' + orgVol.toString())
+        writeLog(20, 'App Active:' + orgVol.toString())
         saveVol()
         aquireAudio(); // for android
       } else {
-        writeLog(20, 'Deactive:'+orgVol.toString())
+        writeLog(20, 'App Deactive:'+orgVol.toString())
         if (iniObj.changeVol) {
           setVol(orgVol)/*.then(() => {  //以下のボリューム変更がOPPOで機能しない！！
             writeLog(20, 'volRest!:' + orgVol.toString()) }) */
@@ -96,7 +95,7 @@ export default function index(){
     };
   }, []);
 
-  // writeLog(10, 'index called')
+  writeLog(10, 'index:scrNum:' + scnNum)
   buttonSort(scnNum);
 
   const aquireAudio = async () => { // アンドロイドでバックグラウンドの音楽を止める
@@ -134,20 +133,26 @@ async function saveVol(){
   }
 }
 
-async function setVol(vol:number) {
-  writeLog(20, 'setVol:start:' + vol.toString().substring(0,5))
-  VolumeManager.setVolume(vol/100 ,{showUI: false})
-  const { volume } = await VolumeManager.getVolume();
-  writeLog(20, 'setVol:end:' + (volume*100).toString().substring(0,5))
-}
+  async function setVol(vol:number) {
+    writeLog(20, 'setVol:start:' + vol.toString().substring(0,5))
+    VolumeManager.setVolume(vol/100 ,{showUI: false})
+    const { volume } = await VolumeManager.getVolume();
+    writeLog(20, 'setVol:end:' + (volume*100).toString().substring(0,5))
+  }
 
   function toDo(index:number){
     let matchText = pgObj[scnNum].btnList[index].option.match(/.*(lpr):(.+?)(\s+.*|$)/); // 長押しが必要
-    if (matchText !== null && matchText[2] !== '' && matchText[2] === 'true') { return }
+    if (matchText !== null && matchText[2] !== '' && matchText[2] === 'true') { 
+      writeLog(10, 'toDo:request LognPress')
+      return }
     toDoSpeak(index)
   }
 
   function toDoSpeak(index:number) {   //発声ボタンが押された時の処理
+    writeLog(10, 'toDoSpeak:'+scnNum + ',' + index +':'
+      + pgObj[scnNum].btnList[index].moji + '/'
+      + pgObj[scnNum].btnList[index].speak + '/' 
+      + pgObj[scnNum].btnList[index].tugi )
     // if(iniObj.changeVol === true) {setVol(iniObj.myVol)}
     if (scnNum === 0) {
       speakStack.splice(0);
@@ -234,20 +239,18 @@ async function setVol(vol:number) {
   } // end of toDo
 
   function pgBack(){
-    if (pgStack.length > 0) {
-      let backPg:number;
-      backPg = pgStack[pgStack.length-1]
-      pgStack.pop();
+    const backPg = pgStack.pop()
+    if (backPg !== undefined) {
       setScnNum(backPg);
     } else {
-      setScnNum(0)
+      setScnNum(iniObj.homeScrn)
     }
   }
 
   function pgHome(){
-    if (scnNum !== 0 ) {
+    if (scnNum !== iniObj.homeScrn ) {
       pgStack.push(scnNum)
-      setScnNum(0)  }
+      setScnNum(iniObj.homeScrn)  }
   }
 
   async function replaySpeak(){
@@ -346,7 +349,7 @@ async function setVol(vol:number) {
           headerTitle: () => (
             <Pressable onLongPress={() => router.push({ pathname: "/helpIndex", params: { post: scnNum, from: 'index' } })}>
               <View style={styles.headerTitle}>
-                <Text style={styles.headerText}>
+                <Text style={[styles.headerText, {textDecorationLine:scnNum === iniObj.homeScrn ?'underline':'none'}]}>
                   {pgObj[scnNum].pgTitle}</Text>
               </View>
             </Pressable>

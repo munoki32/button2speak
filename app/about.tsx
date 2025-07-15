@@ -62,7 +62,6 @@ The MIT License (MIT)
 [expo-av] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 [expo-speeech] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 [expo-file-system] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
-[expo-clippboard] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 [expo-application] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 [expo-document-picker] Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
 [react-native-picker] Copyright (c) 2015-present, Facebook, Inc.

@@ -34,7 +34,7 @@ export default function addButton(){ // フリー・ボタン追加/編集
     writeLog(20, 'Err: freeText No post number');
     scnNum = 0;
   };
-  
+  writeLog(10, 'addButton:'+scnNum +' '+ from)
   buttonSort(scnNum);  // 20250616 sort after say
 
 function toDo(count:number) {   //発声ボタンが押された時の処理
@@ -136,7 +136,7 @@ function toDo(count:number) {   //発声ボタンが押された時の処理
     if (isSame === -1) { //同じ内容は記録しない
       pgObj[scnNum].btnList.push({moji:textInput, speak:'', tugi:'', option:' ',
         defSeq:-999, usedDt:Date.now(), numUsed:1000 }) // 最初のエントリーに定義
-      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10)
+      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
     } else {
       pgObj[scnNum].btnList[isSame].numUsed += 1000;
       pgObj[scnNum].btnList[isSame].usedDt = Date.now();

@@ -1,6 +1,5 @@
 import Slider from '@react-native-community/slider';
 import { reloadAppAsync } from "expo";
-import * as Clipboard from 'expo-clipboard';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,7 +12,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { VolumeManager } from 'react-native-volume-manager';
 import {
-  copyToClipboard, iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
+  iniObj, iniObjPath, initData, pgObj, pgObjPath, pgObjPathOld,
   pgStack, shareFile, shareLog, storeCSVdata, writeFile, writeLog,
 } from './comFunc';
 import { orgVol, styles, } from './index';
@@ -26,9 +25,9 @@ export default function configApp(){ //全体の設定
   const [useSlide, setuseSlide] = useState(false)
   const [changeScrn, setChangeScrn] = useState(true)
   const [replayScrnHold, setReplayScrnHold] = useState(iniObj.replayScrnHold)
-  const [writeLogFile, setWriteLogFile] = useState(iniObj.writeLogFile)
   const { post, from } = useLocalSearchParams();
   const [logLevel, setLogLevel] = useState(iniObj.logLevel)
+  const [homeScrn, setHomeScrn] = useState(iniObj.homeScrn)
 
   let scnNum = 0;
   if (post) {
@@ -37,11 +36,14 @@ export default function configApp(){ //全体の設定
     writeLog(20, 'Err: configScrn No post number');
     scnNum = 0;
   };
-  // if (from) {
-  // writeLog(10, 'confgiApp: from:' + from)
-  // }
 
+  writeLog(10, 'configApp:scrNum:' + scnNum)
   const router = useRouter();
+
+  const scrnList = []
+  for (let i =0; i < pgObj.length; i++) {
+    scrnList.push({key:i, label:i.toString()+':'+pgObj[i].pgTitle, value:i})
+  }
 
   const [sliderValue, setSliderValue] = useState(iniObj.changeVol?iniObj.myVol:orgVol)
   function onSlider(value:number) {
@@ -51,42 +53,30 @@ export default function configApp(){ //全体の設定
   }
   
   async function setVol(vol:number) {
-  // writeLog(10, 'new   Vol' + vol.toString());
-    writeLog(20, 'setVoltoBe:' + vol.toString())
+    writeLog(10, 'setVoltoBe:' + vol.toString())
     VolumeManager.setVolume(vol/100 ,{showUI: false})
     const { volume } = await VolumeManager.getVolume();
-    writeLog(20, 'setVolResuld:' + (volume*100).toString())
-  }
-  const readClip = async (scnNum:number) => {
-    const csvBuff = await Clipboard.getStringAsync();
-    // writeLog(10));
-    pgStack.splice(0);
-    storeCSVdata(csvBuff);
-    applyConfiSetting();
-    writeFile();
-    setChangeScrn(!changeScrn)
-    Alert.alert('定義を読込みました')
+    writeLog(10, 'setVolResuld:' + (volume*100).toString())
   }
 
   const pickFile = async (scnNum:number) => { // データの読込み
+    writeLog(20, 'pickFIle:')
     const result = await DocumentPicker.getDocumentAsync({
       copyToCacheDirectory: true,
       type: 'text/plain',
     });
     if (result.assets !== null) {
-      // writeLog(10]);
+      writeLog(20, 'picFile:');
       if (Platform.OS === 'web' ) { return }
       try {
         const csvBuff = await FileSystem.readAsStringAsync(result.assets[0].uri, {
         encoding: FileSystem.EncodingType.UTF8, });
-        // writeLog(10].uri);
         pgStack.splice(0);
         storeCSVdata(csvBuff);
-        // writeLog(10));
         applyConfiSetting();
       } catch (e) {
-        writeLog(20, e);
-        writeLog(20, 'pickFile Error:' + result.assets[0].name);
+        writeLog(40, e);
+        writeLog(40, 'pickFile Error:' + result.assets[0].name);
       }
       writeFile();
       setChangeScrn(!changeScrn)
@@ -95,6 +85,7 @@ export default function configApp(){ //全体の設定
   };
 
   async function readOldFile() {
+    writeLog(20, 'readOldFile:')
     if (Platform.OS === 'web' ) { return }
     let tmp = await FileSystem.getInfoAsync(pgObjPathOld);
     if (tmp.exists) {
@@ -121,8 +112,6 @@ export default function configApp(){ //全体の設定
   
   function applyConfiSetting(){
     writeLog(20, 'applyConfig:');
-    // setAddFreeStack(iniObj.addFreeStack);
-    // setBtn3col(iniObj.btn3col);
     setTextOnSpeak(iniObj.textOnSpeak);
     setModalRotate(iniObj.modalTextRotate);
     setChangeVol(iniObj.changeVol);
@@ -136,10 +125,9 @@ export default function configApp(){ //全体の設定
     if ((await FileSystem.getInfoAsync(pgObjPath)).exists) { await FileSystem.deleteAsync(pgObjPath)} 
     if ((await FileSystem.getInfoAsync(pgObjPathOld)).exists) { await FileSystem.deleteAsync(pgObjPathOld)} 
     if ((await FileSystem.getInfoAsync(iniObjPath)).exists) { await FileSystem.deleteAsync(iniObjPath)} 
-    // writeLog(10, 'delFile2:');
+    writeLog(10, 'restoreInit:FilesDeleted:');
     initData()  // 空のデータにする
     writeFile()
-    // writeIniObj()
     applyConfiSetting();
     setChangeScrn(!changeScrn)
     Alert.alert('アプリケーションを初期状態に戻しました')
@@ -147,13 +135,6 @@ export default function configApp(){ //全体の設定
   }
 
   function pgBack(){
-    // if (iniObj.changeVol) {
-    //   setVol(sliderValue)
-    // } else {
-    //   setVol(orgVol)
-    // }
-    writeFile();
-    // router.back();
     from === 'free' ? router.dismissTo({pathname:'/freeText', params: {post: scnNum, from:'configApp'}}) 
     : router.dismissTo({pathname:'/', params: {post: scnNum, from:'configApp'}})
   }
@@ -197,7 +178,7 @@ export default function configApp(){ //全体の設定
               readOldFile()
               reloadAppAsync();
             }}, ])}} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>定義を戻す</Text>
           </View>
         </TouchableHighlight>
@@ -209,76 +190,35 @@ export default function configApp(){ //全体の設定
             restoreInit();
             // reloadAppAsync();
           }}, ])}} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>初期化する</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight onLongPress={ ()  => { 
           reloadAppAsync();
           }} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
+          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/3-9} ]}>
             <Text style={[stylAppConf.text, {color: 'red'}]}>再起動</Text>
           </View>
         </TouchableHighlight>
-        <TouchableHighlight disabled={Platform.OS !== 'ios'}
-          onPress={ ()  => { 
-            router.push({ pathname: "/paySupport", params: { post: scnNum, from: 'configApp' } });
-          }} 
-          onLongPress={ ()  => { 
-            router.push({ pathname: "/paySupportDummy", params: { post: scnNum, from: 'configApp' } });
-          }} >
-          <View style={[stylAppConf.button, {width: Dimensions.get('window').width/4-9} ]}>
-            <Text style={[stylAppConf.text, {color:Platform.OS !== 'ios'?'gray':'red'}]}>応援</Text>
-          </View>
-        </TouchableHighlight>
+
         <TouchableHighlight onPress={ () => {
-          Alert.alert('質問','データをコピーしますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: '履歴も含めコピー', onPress: () => {
-              iniObj.removeButtonHistory = false;
-              copyToClipboard()
-            }}, 
-            { text: '基本データのみコピー', onPress: () => { 
-              iniObj.removeButtonHistory = true;
-              copyToClipboard()
-            }},  ])
-          }} >
-          <View style={[stylAppConf.button ]}>
-            <Text style={[stylAppConf.text]}>クリップボードへ</Text>
-            <Text style={[stylAppConf.text]}>定義をコピーする</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight  onPress={ ()  => { 
-          Alert.alert('質問','定義ファイルをクリップボードから読込みますか？', [
-            { text: 'いいえ', onPress: () => {return} },
-            { text: 'はい', onPress: () => { 
-              readClip(scnNum);
-              }}, ])
-          }} >
-          <View style={[stylAppConf.button]}>
-            <Text style={[stylAppConf.text]}>クリップボードから</Text>
-            <Text style={[stylAppConf.text]}>定義を読込む</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight onPress={ () => {
-            Alert.alert('質問','データをシェアしますか？', [
+            Alert.alert('質問','データを保存しますか？', [
               { text: 'いいえ', onPress: () => {return
               }},
               { text: '履歴も含めシェア', onPress: () => {
-                iniObj.removeButtonHistory = false;
-                shareFile()
+                shareFile(false)
               }}, 
               { text: '基本データのみシェア', onPress: () => { 
-                iniObj.removeButtonHistory = true;
-                shareFile()
+                shareFile(true)
               }}, 
-              { text: 'ログのシェア', onPress: () => { 
+              { text: 'ログの保存', onPress: () => { 
                 shareLog()
               }}, 
             ])
           }}
           onLongPress={ () => { 
-            Alert.alert('質問','ログをシェアしますか？', [
+            Alert.alert('質問','ログを保存しますか？', [
               { text: 'いいえ', onPress: () => {return
               }},
               { text: 'ログのシェア', onPress: () => { 
@@ -402,6 +342,19 @@ export default function configApp(){ //全体の設定
               value={logLevel}
               />
             <Text style={[stylAppConf.pickerText,]}>ログレベル</Text>
+          </View>
+          <View>
+            <RNPickerSelect 
+              onValueChange={(value) => {
+                setHomeScrn(value);
+                iniObj.homeScrn = homeScrn;
+              }}
+              items={scrnList}
+              Icon={() => (<Text style={{ position: 'absolute', right: 10, top: 15, fontSize: 18, color: '#789' }}>{Platform.OS === 'ios' ? '▼' : '' }</Text>)}
+              style={pickerSelectStyles}
+              value={homeScrn}
+              />
+            <Text style={[stylAppConf.pickerText,]}>ホーム画面</Text>
           </View>
         </View>
     </View>

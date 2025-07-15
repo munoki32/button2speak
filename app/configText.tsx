@@ -50,6 +50,7 @@ export default function configText(){
 
   const onPressDismiss = () => {
     removeDup(scnNum)
+    pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
     writeFile();
     router.dismissTo({ pathname: "/configScrn", params: { post: scnNum, from: 'configText' }, });
   } 
@@ -72,8 +73,9 @@ export default function configText(){
 // writeLog(10, 'onSave:'+offSet.toString() + ':' + tempObj.btnList.length.toString() + ':' + numConf.toString());
 if ( btnList[numInput-1].moji === '' && offSet + numInput >= tempObj.btnList.length ) {  // last screen? (offset+5: last entry of screen)
       removeDup(scnNum)
+      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
       writeFile();
-      router.dismissTo({ pathname: "/configApp", params: {post: scnNum, from:'configText' }, });
+      router.dismissTo({ pathname: "/configScrn", params: {post: scnNum, from:'configText' }, });
     } else {
       if (offSet + numInput*2 > tempObj.btnList.length) {  //頁追加
 // writeLog(10, 'add ' + offSet.toString() + ' len ' + tempObj.btnList.length.toString());

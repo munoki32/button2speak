@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Alert, Dimensions, Platform } from 'react-native';
@@ -6,28 +5,23 @@ import { defString } from './defaultText';
 
 export default function dummy(){}
 
-export let pgObj = [{ pgTitle:'', 
-  btnList:[{moji:'', speak:'', tugi:'', option:'', defSeq:0, usedDt:0, numUsed:0 }], pgOption:'' }];
+export let pgObj = [  // 初画面分は静的な定義が必要
+  { pgTitle:'', btnList:[{moji:'', speak:'', tugi:'', option:'', defSeq:0, usedDt:0, numUsed:0 }], pgOption:'' },
+];
 
-export let iniObj={
+export let iniObj={  // 設定の初期値
   defaultButtonColor:'#dcdcdc',
   defualtTextColor:'black', 
   controlButtonColor:'#ddff99',
   controlButtonBorder: 'gray',
   freeTextClear: true, 
-  addFreeStack: false, 
-  btn3col:false, 
   textOnSpeak:false, 
   changeVol:false, 
   modalTextRotate: false,  
   myVol:70,
-  clearOnRead: true, 
   replayScrnHold: false,
-  defaultSortType: 'def',
-  removeButtonHistory: true,
-  writeLogFile: false,
-  logLevel: 99,
-  userId:'',
+  logLevel:10,
+  homeScrn:0,
 }
 
 export const pgObjPath = FileSystem.documentDirectory + 'SpeakPad4.txt';
@@ -42,47 +36,13 @@ export let mojiStack:string[] =[]  // history of spaak
 export let dispText:string[] = []  // display text on modal
 export let logFile:string = '' // log
 
-export function resetIniObj() {
-  writeLog(20, 'resetIniObj:start');
-  iniObj = { // 初期化時に反映されるデータ
-    defaultButtonColor:'#dcdcdc',
-    defualtTextColor:'black', 
-    controlButtonColor:'#ddff99',
-    controlButtonBorder: 'gray',
-    freeTextClear: true, 
-    addFreeStack: false, 
-    btn3col:false, 
-    textOnSpeak:false, 
-    changeVol:false, 
-    modalTextRotate: false,  
-    myVol:70,
-    clearOnRead: true, 
-    replayScrnHold: false,
-    defaultSortType: 'def',
-    removeButtonHistory: true,
-    writeLogFile: false, 
-    logLevel: 99,
-    userId:'',
-  }
-}
-
-export function initData(){ //　初期化で呼ばれる処理
-  writeLog(20, 'initData:start');
-  resetIniObj();   // 初期値設定
-  pgObj.splice(0) // 全てをクリア
-  pgObj.push({ pgTitle:'', btnList:[], pgOption:'' });
-  pgStack.splice(0)
-  storeCSVdata(defString);
-  writeLog(20, 'initData:end:' + defString.substring(0,100));
-}
-
 export async function readInitialFile() { // 開始時に呼ばれる処理
   writeLog(20, 'readInitialFile:start');
   if (Platform.OS === 'web' ) {
     initData();
     storeCSVdata(defString);
     return }
-  await readIniObj();  // 設定読込み
+  // await readIniObj();  // 設定読込み
   let tmp = await FileSystem.getInfoAsync(pgObjPath); //　頁データ読込み
   if (tmp.exists) {
     try {
@@ -105,6 +65,39 @@ export async function readInitialFile() { // 開始時に呼ばれる処理
   }
 }
 
+export async function readIniObj() {  //設定読込み
+  writeLog(20, 'readIniObj:start' )
+  if (Platform.OS === 'web' ) { return null }
+  let tmp = await FileSystem.getInfoAsync(iniObjPath);
+  if (tmp.exists) {
+    try {
+      const readText = await FileSystem.readAsStringAsync(iniObjPath, {
+        encoding: FileSystem.EncodingType.UTF8, });
+      const lineData = readText.split(/\n/);
+      for (let i=0; i < lineData.length; i++){
+        scanIniText(lineData[i])
+      }
+      writeLog(0 , 'readIniObj:data\n' + readText);
+      writeLog(20, 'readIniObj:read end');
+      return
+      } catch (e) {
+      writeLog(40, e);
+      writeLog(40, 'readIniObj Error:' + iniObjPath + '\n');
+    }
+  } else {
+    writeLog(20, 'readIniObj:not exist');
+  }
+}
+
+export function initData(){ //　初期化で呼ばれる処理
+  writeLog(20, 'initData:start');
+  pgObj.splice(0) // 全てをクリア
+  pgObj.push({ pgTitle:'', btnList:[], pgOption:'' });
+  pgStack.splice(0)
+  storeCSVdata(defString);
+  writeLog(20, 'initData:end:' + defString.substring(0,100));
+}
+
 export const writeFile = async () => {
   writeLog(20, 'writeFile:start');
   if (Platform.OS === 'web' ) { return }
@@ -116,7 +109,7 @@ export const writeFile = async () => {
         encoding: FileSystem.EncodingType.UTF8, });
       if (compString(pgObjTxt, pgObjTxtOld)) {             // 変更が有ったか？
         writeLog(20, 'writeFile:no update');
-        writeIniObj();
+        // writeIniObj();
         return
       }
       await FileSystem.copyAsync({     // 保存ファイルを改名
@@ -127,24 +120,24 @@ export const writeFile = async () => {
     await FileSystem.writeAsStringAsync(pgObjPath, pgObjTxt, {
       encoding: FileSystem.EncodingType.UTF8, });
     writeLog(20, 'writeFile:end');
-    writeIniObj();
+    // writeIniObj();
   } catch (e) {
     writeLog(40, e);
     writeLog(40, 'writeFile Error:' + pgObjPath + '\n');
   }
 //  Alert.alert('情報','設定を保存しました')
-}
 
-function compString(str1:string, str2:string){
-  if (str1.length !== str2.length) return false;
-  const lineData1 = str1.split(/\n/);
-  const lineData2 = str2.split(/\n/);
-  if (lineData1.length !== lineData2.length) return false;
-  for ( let i = 0; i < lineData1.length; i ++) {
-    if (lineData1[i].indexOf("// saved") === 0) continue;
-    if (lineData1[i] !== lineData2[i]) return false;
+  function compString(str1:string, str2:string){
+    if (str1.length !== str2.length) return false;
+    const lineData1 = str1.split(/\n/);
+    const lineData2 = str2.split(/\n/);
+    if (lineData1.length !== lineData2.length) return false;
+    for ( let i = 0; i < lineData1.length; i ++) {
+      if (lineData1[i].indexOf("// saved") === 0) continue;
+      if (lineData1[i] !== lineData2[i]) return false;
+    }
+    return true;
   }
-  return true;
 }
 
 export async function writeLog( level:number, text:any ){
@@ -158,22 +151,21 @@ export async function writeLog( level:number, text:any ){
       encoding: FileSystem.EncodingType.UTF8, });
 }
 
-export const shareLog = async () => {
-  const isAvailable = await Sharing.isAvailableAsync();
-  if (!isAvailable) { return;  }
-  await Sharing.shareAsync(logPath);  // ファイル共有
-};
-
 export function makeCVSdata(removeButtonHistory:boolean) {
-  writeLog(20, 'makeCVSdata:history?' + removeButtonHistory);
-  let csvBuff = "// button2speak config data:"
-  if ( iniObj.defaultButtonColor !== '#dcdcdc' ) { csvBuff += ' dbc:' + iniObj.defaultButtonColor }
-  if ( iniObj.defualtTextColor !== 'black' ) { csvBuff += ' dtc:' + iniObj.defualtTextColor }
-  if ( iniObj.controlButtonColor !== '#ddff99' ) { csvBuff += ' cbc:' + iniObj.controlButtonColor }
-  if ( iniObj.controlButtonBorder !== 'gray' ) { csvBuff += ' cbb:' + iniObj.controlButtonBorder }
-  // if ( iniObj.defaultSortType !== 'def' ) { csvBuff += ' sort:' + iniObj.defaultSortType }
-  if ( iniObj.userId !== '' ) { csvBuff += ' uid:' + iniObj.userId }
-  csvBuff += '\n'
+  writeLog(20, 'makeCVSdata:remove:' + removeButtonHistory);
+  let csvBuff = "// button2speak config data:\n"
+  if ( iniObj.defaultButtonColor !== '#dcdcdc' ) { csvBuff += '// opt:dbc:' + iniObj.defaultButtonColor +'\n' }
+  if ( iniObj.defualtTextColor !== 'black' ) { csvBuff += '// opt:dtc:' + iniObj.defualtTextColor +'\n' }
+  if ( iniObj.controlButtonColor !== '#ddff99' ) { csvBuff += '// opt:cbc:' + iniObj.controlButtonColor +'\n' }
+  if ( iniObj.controlButtonBorder !== 'gray' ) { csvBuff += '// opt:cbb:' + iniObj.controlButtonBorder +'\n' }
+  if ( iniObj.freeTextClear !== true )  csvBuff +=  '// opt:ftc:' + iniObj.freeTextClear.toString() + ' 入力自動クリア\n'
+  if ( iniObj.textOnSpeak !== false )  csvBuff +=   '// opt:tos:' + iniObj.textOnSpeak.toString() + ' 発生時に表示\n'
+  if ( iniObj.changeVol !== false )  csvBuff +=  '// opt:chv:' + iniObj.changeVol.toString() + ' ボリュームを制御する\n'
+  if ( iniObj.modalTextRotate !== false )  csvBuff +=  '// opt:mtr:' + iniObj.modalTextRotate.toString() + ' 表示を反転\n'
+  if ( iniObj.myVol !== 70 )  csvBuff +=  '// opt:myv:' + iniObj.myVol.toString() + ' ボリュームの値\n'
+  if ( iniObj.replayScrnHold !== false )  csvBuff +=  '// opt:rsh:' + iniObj.replayScrnHold.toString() + ' もう一度を自動で閉じない\n'
+  if ( iniObj.logLevel !== 10 )  csvBuff +=  '// opt:llv:' + iniObj.logLevel.toString() + ' ログレベル\n'
+  if ( iniObj.homeScrn !== 0 )  csvBuff +=  '// opt:hsc:' + iniObj.homeScrn.toString() + ' ホーム画面\n'
   const d = new Date();    // Tue Apr 22 2025 23:46:00 GMT+0900 (日本標準時)
   csvBuff += '// saved ' + d + '\n'; writeLog(0, 'date:' + d);
   for (let i = 0 ; i < pgObj.length ; i++){
@@ -203,49 +195,30 @@ export function makeCVSdata(removeButtonHistory:boolean) {
     }
   }
   csvBuff += "//-------------- End of Data ------------------------------\n";
-  writeLog(10, csvBuff);
+  writeLog(0, csvBuff);
   return csvBuff
 }
 
-export async function copyToClipboard(){
-  writeLog(20, 'copyToClipboard:' );
-  await Clipboard.setStringAsync(makeCVSdata(iniObj.removeButtonHistory));
-  Alert.alert('情報','クリップボードへ書込みました') 
-}
-  
-export const shareFile = async () => {
-  writeLog(20, 'shareFile:' );
-  const isAvailable = await Sharing.isAvailableAsync();
-  if (!isAvailable) {   // 共有できるかチェック
-    Alert.alert('共有できません', 'このデバイスでは共有機能が使えません');
-    return;
-  }
-  await FileSystem.writeAsStringAsync(pgObjShare, makeCVSdata(iniObj.removeButtonHistory), {
-    encoding: FileSystem.EncodingType.UTF8, });
-  writeLog(20, 'writeShare:'+ iniObj.removeButtonHistory );
-  await Sharing.shareAsync(pgObjShare);  // ファイル共有
-};
-  
 export function storeCSVdata(csvBuff:string){ // 頁毎に置換
   writeLog(20, 'storeCSVdata:read screen:' );
   let lineCount = 0;
-  iniObj.defaultButtonColor = '#dcdcdc'
-  iniObj.defualtTextColor = 'black' 
-  iniObj.controlButtonColor = '#ddff99'
-  iniObj.controlButtonBorder = 'gray'
-  writeLog(10, 'storeCVSdata start ----------------------');
   const lineData = csvBuff.split(/\n/);
   for ( let i = 0; i < lineData.length ; i++) { //Header Process
     lineData[i].trim();
     if (lineData[i] !== '') {  //　最初の空行はOK
       // if (lineData[i].indexOf("// button2speak config data:") !== 0 )
       if (!(/^\/\/.*(button2speak|speakpad) config data:($|.*$)/).test(lineData[i]))
-        { Alert.alert('中止','このデータは読込めません:' + lineData[i]); return }
+        { Alert.alert('中止','このデータは読込めません:' + lineData[i]);
+          writeLog(40, 'storeCSV error:not data.'+lineData[i]);
+          return; }
       lineCount = i + 1;
       break; //見つけたら終了
-    }  // end of config data label
+    }  // 
   }
-  if (lineCount < 1) {  Alert.alert('中止','このデータが有りません:'); return };
+  if (lineCount < 1) {  
+    Alert.alert('中止','このデータが有りません:');
+    writeLog(40, 'storeCSV error:no data.'+lineData[0]);
+    return };
 // 
   let curPgNum = 0
   for (let i = 0 ; i < lineData.length ; i++) {  // process body 
@@ -253,12 +226,12 @@ export function storeCSVdata(csvBuff:string){ // 頁毎に置換
     if (lineData[i].length < 1) { lineCount++; continue }
     if (lineData[i] === '') {lineCount++; continue}
     if (lineData[i].indexOf('//') === 0 ) { // の中の文字処理（最初の行を含む）
-      writeLog(0, 'read data' + lineData[i]);
+      writeLog(0, 'read data:' + lineData[i]);
       if ((/^\/\/.*(opt:|button2speak config data:|speakpad config data:)(.*)/).test(lineData[i])) {
         scanIniText(lineData[i]);
-        writeLog(0, 'storeCSVdata lineData:' +i+' '+ lineData[i]);
-      }
-      continue;
+        writeLog(20, 'storeCSVdata:' + i +' '+ lineData[i]);
+      } 
+      continue; // 次の行へ
     }
     const colData = lineData[i].split(',');
       writeLog(0, 'colData:' + i.toString() + ':' + colData[1] + colData[2]+'\n')
@@ -276,8 +249,7 @@ export function storeCSVdata(csvBuff:string){ // 頁毎に置換
             pgObj.push({ pgTitle:'', btnList:[], pgOption:'' })
           }
         }
-//        pgObj[curPgNum].pgTitle = '' //   既存ならタイトルそのまま　>>,12 の場合
-        if( iniObj.clearOnRead ) { pgObj[curPgNum].btnList.splice(0) } //　ボタンデータを画面単位でクリア
+        pgObj[curPgNum].btnList.splice(0)  //　ボタンデータを画面単位でクリア
         if((/^ *>>R.*/).test(colData[0])) { 
           writeLog(0, 'storeCSVdata Screen Replace:' + colData[0]);
           pgObj[curPgNum].btnList.splice(0) } //　>>R　で　ボタンデータを画面単位でクリア
@@ -298,7 +270,7 @@ export function storeCSVdata(csvBuff:string){ // 頁毎に置換
         if (regStr2.test(colData[2])) { colData[2] = colData[2].replace(regStr2, '$1')}  // +（互換性維持）
         if (colData[1] === 'url') { colData[1] = colData[2]; colData[2] = 'url'}         // +（互換性維持）
         if (colData.length < 4) { colData[3] = '' }
-        let defSeq = pgObj[curPgNum].btnList.length*10;
+        let defSeq = pgObj[curPgNum].btnList.length*10+10;
         if (colData.length > 4) { defSeq = parseInt(colData[4])}
         let usedDt = 0;
         if (colData.length > 5) { usedDt = parseInt(colData[5])} 
@@ -319,6 +291,53 @@ export function storeCSVdata(csvBuff:string){ // 頁毎に置換
 //  Alert.alert('情報', lineCount.toString() +'件読込みました')
   return 
 }
+ 
+function scanIniText(inText:string){
+  writeLog(0, 'scanIniText:start' )
+  let matchText = inText.match(/.*(defaultButtonColor|dbc):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.defaultButtonColor = matchText[2] }
+  matchText = inText.match(/.*(defualtTextColor|dtc):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.defualtTextColor = matchText[2] }
+  matchText = inText.match(/.*(controlButtonColor|cbc):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.controlButtonColor = matchText[2]; }
+  matchText = inText.match(/.*(controlBUttonBorder|cbb):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.controlButtonBorder = matchText[2]; }
+  matchText = inText.match(/.*(ftc):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.freeTextClear = (matchText[2]==='true')? true : false }
+  matchText = inText.match(/.*(tos):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.textOnSpeak = (matchText[2]==='true')? true : false }
+  matchText = inText.match(/.*(chv):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.changeVol = (matchText[2]==='true')? true : false }
+  matchText = inText.match(/.*(mtr):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.modalTextRotate = (matchText[2]==='true')? true : false }
+  matchText = inText.match(/.*(myv):(\d+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.myVol = parseInt(matchText[2]) }  
+  matchText = inText.match(/.*(rsh):(.+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.replayScrnHold = (matchText[2]==='true')? true : false }
+  matchText = inText.match(/.*(llv):(\d+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.logLevel = parseInt(matchText[2]) }
+  matchText = inText.match(/.*(hsc):(\d+?)(\s+.*|$)/)
+  if (matchText !== null && matchText[2] !== '') { iniObj.homeScrn = parseInt(matchText[2]) }
+}
+
+export const shareLog = async () => {
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) { return;  }
+  await Sharing.shareAsync(logPath);  // ファイル共有
+};
+
+export const shareFile = async (removeButtonHistory:boolean) => {
+  writeLog(20, 'shareFile:' );
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) {   // 共有できるかチェック
+    Alert.alert('共有できません', 'このデバイスでは共有機能が使えません');
+    return;
+  }
+  await FileSystem.writeAsStringAsync(pgObjShare, makeCVSdata(removeButtonHistory), {
+    encoding: FileSystem.EncodingType.UTF8, });
+  writeLog(20, 'writeShare:'+ removeButtonHistory );
+  await Sharing.shareAsync(pgObjShare);  // ファイル共有
+};
 
 export function makeLink(scnNum:number){ // make link to unliked page
   writeLog(20, 'makeLink:' );
@@ -332,24 +351,25 @@ export function makeLink(scnNum:number){ // make link to unliked page
           linkName:pgObj[scn].btnList[i].moji } ) }
     }
   }
-  for (let i = 1 ; i < pgObj.length; i++){ //画面ごとにチェック（ホーム以外）
+  for (let i = 0 ; i < pgObj.length; i++){ //画面ごとにチェック（ホーム以外）
+    if (i === iniObj.homeScrn) { continue; }
     if (pgObj[i].pgTitle === 'フリー') { continue; }
     let j = 0
     for ( j = 0; j < linkList.length; j++ ){
       if ( i === linkList[j].linkNo ) { break } // j = 0 - len-1
     }
     if ( j >= linkList.length) {  // not break リストにこの画面なし
-      const lastSeq = Math.max(...pgObj[scnNum].btnList.map(item => item.defSeq),0)+10;
       if(pgObj[i].pgTitle !== '' ) {
         pgObj[scnNum].btnList.push({ moji:pgObj[i].pgTitle , speak:'na', 
-          tugi: i.toString(), option:'', defSeq:lastSeq, usedDt:999-lastSeq, numUsed:999-lastSeq });
-        writeLog(10, 'makeLInk: added ' + i);
-        linkCount++;
+          tugi: i.toString(), option:'', defSeq:-999, usedDt:Date.now(), numUsed:1000 });
+        writeLog(0, 'makeLInk: added ' + i);
       } else if( pgObj[i].btnList.length > 0 ) {
         pgObj[scnNum].btnList.push({ moji:'画面' + i.toString() , speak:'na', 
-          tugi: i.toString(), option:'', defSeq:lastSeq, usedDt:999-lastSeq, numUsed:999-lastSeq });
-        linkCount++;     
+          tugi: i.toString(), option:'', defSeq:-999, usedDt:Date.now(), numUsed:1000 });
+        writeLog(0, 'makeLInk: newScrn ' + i);
       }
+      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
+      linkCount++;   
     }
   }
   writeFile();
@@ -361,7 +381,7 @@ export function makeLink(scnNum:number){ // make link to unliked page
 }
 
 export function removeDup(scnNum:number){
-  writeLog(10, 'removeDup:' + scnNum );
+  writeLog(0, 'removeDup:' + scnNum );
   // remove blank if exist
   let regStr = new RegExp(/^[0-9]+$/)
   for (let i = 0 ; i < pgObj[scnNum].btnList.length; i++){
@@ -378,103 +398,6 @@ export function removeDup(scnNum:number){
   //pgObj[scnNum].btnList = {...uniqueData}
   writeLog(0, JSON.stringify(uniqueData));
   pgObj[scnNum].btnList = JSON.parse(JSON.stringify(uniqueData));
-}
-
-export async function readIniObj() {  //設定読込み
-  writeLog(20, 'readIniObj:start' )
-  resetIniObj();  // 初期値を設定
-  if (Platform.OS === 'web' ) { return null }
-  let tmp = await FileSystem.getInfoAsync(iniObjPath);
-  if (tmp.exists) {
-    try {
-      const readText = await FileSystem.readAsStringAsync(iniObjPath, {
-        encoding: FileSystem.EncodingType.UTF8, });
-      const lineData = readText.split(/\n/);
-      for (let i=0; i < lineData.length; i++){
-        scanIniText(lineData[i])
-      }
-      writeLog(0 , 'readIniObj:data\n' + readText);
-      writeLog(20, 'readIniObj:read end');
-      return
-      } catch (e) {
-      writeLog(40, e);
-      writeLog(40, 'readIniObj Error:' + iniObjPath + '\n');
-    }
-  } else {
-    writeLog(40, 'readIniObj:not exist');
-  }
-}
-
-function scanIniText(inText:string){
-  writeLog(0, 'scanIniText:start' )
-  let matchText = inText.match(/.*(defaultButtonColor|dbc):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.defaultButtonColor = matchText[2] }
-  matchText = inText.match(/.*(defualtTextColor|dtc):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.defualtTextColor = matchText[2] }
-  matchText = inText.match(/.*(controlButtonColor|cbc):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.controlButtonColor = matchText[2]; }
-  matchText = inText.match(/.*(controlBUttonBorder|cbb):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.controlButtonBorder = matchText[2]; }
-  matchText = inText.match(/.*(ftc):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.freeTextClear = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(afs):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.addFreeStack = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(b3c):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.btn3col = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(tos):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.textOnSpeak = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(chv):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.changeVol = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(mtr):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.modalTextRotate = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(myv):(\d+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.myVol = parseInt(matchText[2]) }  
-  matchText = inText.match(/.*(cor):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.clearOnRead = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(rsh):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.replayScrnHold = (matchText[2]==='true')? true : false }
-  matchText = inText.match(/.*(sort):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.defaultSortType = matchText[2] }
-  matchText = inText.match(/.*(rbh):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.removeButtonHistory = (matchText[2]==='true')? true : false }  
-  matchText = inText.match(/.*(wlf):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.writeLogFile = (matchText[2]==='true')? true : false }  
-  matchText = inText.match(/.*(llv):(\d+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.logLevel = parseInt(matchText[2]) }
-  matchText = inText.match(/.*(uid):(.+?)(\s+.*|$)/)
-  if (matchText !== null && matchText[2] !== '') { iniObj.userId = matchText[2] }
-}
-
-export const writeIniObj = async () => {
-  writeLog(20, 'writeIniObj:start' )
-  if (Platform.OS === 'web' ) { return }
-  try{
-    let writeText = ''
-    // + 'dbc:' + iniObj.defaultButtonColor + '\n'
-    // + 'dtc:' + iniObj.defualtTextColor +  '\n'
-    // + 'cbc:' + iniObj.controlButtonColor +  '\n'
-    // + 'cbb:' + iniObj.controlButtonBorder + '\n'
-    + 'ftc:' + iniObj.freeTextClear.toString() + '\n'
-    + 'afs:' + iniObj.addFreeStack.toString() + '\n'
-    + 'b3c:' + iniObj.btn3col.toString() + '\n'
-    + 'tos:' + iniObj.textOnSpeak.toString() + '\n'
-    + 'chv:' + iniObj.changeVol.toString() + '\n'
-    + 'mtr:' + iniObj.modalTextRotate.toString() + '\n'
-    + 'myv:' + iniObj.myVol.toString() + '\n'
-    + 'cor:' + iniObj.clearOnRead.toString() + '\n'
-    + 'rsh:' + iniObj.replayScrnHold.toString() + '\n'
-    + 'sort:' + iniObj.defaultSortType + '\n'
-    + 'rbh:' + iniObj.removeButtonHistory.toString() + '\n'
-    + 'wlf:' + iniObj.writeLogFile.toString() + '\n'
-    + 'llv:' + iniObj.logLevel.toString() + '\n'
-    // + 'uid:' + iniObj.userId + '\n'
-    await FileSystem.writeAsStringAsync(iniObjPath, writeText, {
-      encoding: FileSystem.EncodingType.UTF8, });
-    writeLog(10, 'writeIniObj:\n' + writeText );
-  } catch (e) {
-    writeLog(40, e);
-    writeLog(40, 'writeIniObj Error:' + iniObjPath );
-  }
 }
 
 export function findButtonWidth(scrn:number){
@@ -549,14 +472,8 @@ export  function buttonSort(scnNum:number){
     } else if ((/.*sort:dfr.*/).test(pgObj[scnNum].pgOption) ){
       pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? -1: 1);  //逆定義順
       writeLog(0, 'buttonSort:sort:dfr');
-    } else if (iniObj.defaultSortType === 'dat') {
-      pgObj[scnNum].btnList.sort((a,b) => (a.usedDt < b.usedDt)? 1: -1);    //使用日時順
-    } else if (iniObj.defaultSortType === 'cnt') {
-      pgObj[scnNum].btnList.sort((a,b) => (a.numUsed-a.defSeq < b.numUsed-b.defSeq)? 1: -1); //頻度順
-    } else if (iniObj.defaultSortType === 'dfr') {
-      pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? -1: 1);  //逆定義順
     } else { // not defined or non, def
       pgObj[scnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1);  //定義順
     }
-    return <view> </view> ;
+    return <view></view> ;
   }

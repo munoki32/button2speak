@@ -1,4 +1,3 @@
-import { reloadAppAsync } from "expo";
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -24,76 +23,53 @@ export default function configScrn(){ // 画面設定・フリー設定
   if (post) {
     scnNum = Number(post);
   } else {
-    writeLog(20, 'Err: configScrn No post number');
+    writeLog(40, 'Err: configScrn No post number');
     scnNum = 0;
   }
-  // let originScnNum = 0;
-  // if (from) { 
-  //   originScnNum = Number(from);
-  // writeLog(10, 'configScrn from: ' + scnNum +'/' + originScnNum );
-  // }
+
+  writeLog(10, 'configScrn from: ' + scnNum  );
 
   // 現在の頁のソート指定を読込む
   let pgSort = 'non';
-  // writeLog(10, 'pgOption:' + pgObj[scnNum].pgOption);
+  writeLog(0, 'configScrn:pgOption:' + pgObj[scnNum].pgOption);
   let matchText = pgObj[scnNum].pgOption.match(/(^|^.*)(sort:)(...)($| .*$)/)
-  if (matchText !== null && matchText[3] !== ''){
-    pgSort=matchText[3]
-  } ;
-  // writeLog(10, 'pgOptionSort:' + pgSort + '/' +pgObj[scnNum].pgOption);
+  if (matchText !== null && matchText[3] !== ''){ pgSort=matchText[3] } ;
+  writeLog(0, 'configScrn:pgOptionSort:' + pgSort + '/' +pgObj[scnNum].pgOption);
   const [pageSort, setPageSort] = useState(pgSort)
   //　rowを読込む
   let pgRow = '6';
   matchText = pgObj[scnNum].pgOption.match(/(^|^.*)(row:)(\d+)($| .*$)/)
-  if (matchText !== null && matchText[3] !== ''){
-    pgRow=matchText[3]
-  } ;
-  // writeLog(10, 'pgOptionRow:' + pgRow + '/' +pgObj[scnNum].pgOption);
+  if (matchText !== null && matchText[3] !== ''){ pgRow=matchText[3] } ;
+  writeLog(0, 'configScrn:pgOptionRow:' + pgRow + '/' +pgObj[scnNum].pgOption);
   const [pageRow, setPageRow] = useState(pgRow)
   //　colを読込む
   let pgCol = '2';
   matchText = pgObj[scnNum].pgOption.match(/(^|^.*)(col:)(\d+)($| .*$)/)
-  if (matchText !== null && matchText[3] !== ''){
-    pgCol=matchText[3]
-  } ;
-  // writeLog(10, 'pgOptionCol:' + pgCol + '/' +pgObj[scnNum].pgOption);
+  if (matchText !== null && matchText[3] !== ''){ pgCol=matchText[3] } ;
+  writeLog(0, 'configScrnpgOptionCol:' + pgCol + '/' +pgObj[scnNum].pgOption);
   const [pageCol, setPageCol] = useState(pgCol)
   // タイトル
   const [textInput, setTextInput] = useState(pgObj[scnNum].pgTitle);  // for TextInput area 初期値
   //
   const router = useRouter();
+
   function onPressConfigText(){
     router.push({ pathname: "/configText", params: { post: scnNum, from: 'configScrn' } });
   }
 
-  function applyConfiSetting(){
-    writeLog(20, 'applyConfig:');
-  }
-
   function pgBack(){ 
     pgObj[scnNum].pgTitle = textInput;
-    writeFile();
+    // writeFile();
     scnNum === freeTextScn ? router.dismissTo({pathname:'/freeText', params: {post: scnNum, from:'configScrn'}}) 
     :  router.dismissTo({pathname:'/', params: {post: scnNum, from:'configScrn' }});
   }
 
   function delScn(scn:number){
     writeLog(20, 'delScn:' + scn);
-    for (let i = 0; i < pgObj.length; i++) {
-      for (let j = 0; j < pgObj[i].btnList.length; j++) {
-        if (parseInt(pgObj[i].btnList[j].tugi) === scn) {
-          writeLog(20, 'delScn:'+pgObj[i].btnList[j].moji+' remove' );
-          pgObj[i].btnList[j].tugi = ''
-        }
-        if (parseInt(pgObj[i].btnList[j].tugi) >= scn) {
-          writeLog(20, 'delScn:' + pgObj[i].btnList[j].moji + 'renumber');
-          pgObj[i].btnList[j].tugi = (parseInt(pgObj[i].btnList[j].tugi)-1).toString();
-        }
-      }
-    }
-    pgObj.splice(scn, 1);
+    setTextInput('')
+    pgObj[scn].pgTitle = '';
+    pgObj[scn].btnList.splice(0)
     writeFile();
-    reloadAppAsync();
   }
 
   return(
@@ -225,7 +201,7 @@ export default function configScrn(){ // 画面設定・フリー設定
                 if (matchText !== null && matchText[2] !== '') {
                   if (value !== '') {
                     pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                    // writeLog( 1, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                    // writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
                   } else {
                     pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
                   }
@@ -252,7 +228,7 @@ export default function configScrn(){ // 画面設定・フリー設定
                 if (matchText !== null && matchText[2] !== '') {
                   if (value !== '') {
                     pgObj[scnNum].pgOption = pgObj[scnNum].pgOption.replace(matchPattern, "$1$2"+value+"$4") ; // change sort: option
-                    // writeLog( 1, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
+                    // writeLog( 0, 'match:' +pgObj[scnNum].pgOption +':'+value+':' );
                   } else {
                     pgObj[scnNum].pgOption = matchText[1] + matchText[4]; // remove sort: option
                   }
@@ -273,7 +249,8 @@ export default function configScrn(){ // 画面設定・フリー設定
             <View style={stylScrnConf.switchContainer} >
               <TouchableHighlight onPress={ () => { setfreeTextClear(!freeTextClear) }}>
                 <Text style={[stylScrnConf.pickerText,
-                  {width:200, height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>入力は発声後クリア</Text>
+                  {width:Dimensions.get("window").width-100,
+                   height:80, marginTop:Platform.OS === 'ios'? 30 :-10}]}>入力は発声後クリア</Text>
               </TouchableHighlight>
               <Switch style={stylScrnConf.switch}
                 onValueChange = {()=> {setfreeTextClear(!freeTextClear);

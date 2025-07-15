@@ -28,7 +28,7 @@ export default function editButton(){ // ボタンの編集
   if (originScn){
     originScnNum = Number(originScn)
   }
-  // writeLog(10, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
+  writeLog(10, 'editButton:' + scnNum +'/' + buttonNum  + '/' + originScnNum);
 
   const [textInput, setTextInput] = useState(pgObj[scnNum].btnList[buttonNum].moji);  // for TextInput area 初期値
   const [speakInput, setSpeakInput] = useState(pgObj[scnNum].btnList[buttonNum].speak);  // for TextInput area 初期値
@@ -36,7 +36,7 @@ export default function editButton(){ // ボタンの編集
 
   // let scrnList = [{key:-1, label:'---', value:-1}];
   // let scrnList = [{key:0, label:'---', value:0}];
-  let scrnList = []
+  const scrnList = []
   for (let i =0; i < pgObj.length; i++) {
     scrnList.push({key:i, label:i.toString()+':'+pgObj[i].pgTitle, value:i+1})
   }
@@ -47,8 +47,7 @@ export default function editButton(){ // ボタンの編集
   // writeLog(10, 'Tugi:' +parseInt(pgObj[scnNum].btnList[buttonNum].tugi) + ' Link:' + selectLink );
 
   function moveButton(){
-    writeLog(20, 'udpateButton:Link:' + selectLink);
-    writeLog(20, 'updateButton:Move:' + selectScrn);
+    writeLog(10, 'udpateButton:' + selectLink + '/' + selectScrn);
     if (setButton()){ // if target set (copied) 
       pgObj[scnNum].btnList.splice(buttonNum,1)  // remove current button
     }
@@ -57,8 +56,7 @@ export default function editButton(){ // ボタンの編集
   }
 
   function copyButton(){
-    writeLog(20, 'copyButton:Link:' + selectLink);
-    writeLog(20, 'copyButton:Move:' + selectScrn);
+    writeLog(10, 'copyButton:' + selectLink+ '/' + selectScrn);
     setButton();
     writeFile();
     router.back();
@@ -81,10 +79,11 @@ export default function editButton(){ // ボタンの編集
         option:pgObj[scnNum].btnList[buttonNum].option, 
         defSeq: 0, usedDt:999, numUsed:999}], pgOption:'' });
       //リンク元をオリジナル画面に追加
-      const nextDefSeq =  Math.max(...pgObj[originScnNum].btnList.map(item => item.defSeq),0)+10
       pgObj[originScnNum].btnList.push({  
         moji:'新規画面', speak:'', tugi:(pgObj.length-1).toString(), option:'', 
-        defSeq:nextDefSeq, usedDt:999-nextDefSeq, numUsed:999-nextDefSeq  })
+        defSeq:-999, usedDt:Date.now(), numUsed:1000 
+      })
+      pgObj[originScnNum].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
       return true;
     } else if ( selectScrn >= 0)  { //指定画面に追加
       for (let i = 0; i < pgObj[selectScrn-1].btnList.length; i++ ) {
@@ -93,14 +92,14 @@ export default function editButton(){ // ボタンの編集
           return false;
         }
       }
-      const nextDefSeq =  Math.max(...pgObj[selectScrn-1].btnList.map(item => item.defSeq),0)+10
       pgObj[selectScrn-1].btnList.push( {  // add to new scrn 
         moji:pgObj[scnNum].btnList[buttonNum].moji,
         speak:pgObj[scnNum].btnList[buttonNum].speak,
         tugi:pgObj[scnNum].btnList[buttonNum].tugi,
         option:pgObj[scnNum].btnList[buttonNum].option, 
-        defSeq:nextDefSeq, usedDt:999-nextDefSeq, numUsed:999-nextDefSeq
+        defSeq:-999, usedDt:Date.now(), numUsed:1000
       })
+      pgObj[selectScrn-1].btnList.sort((a,b) => (a.defSeq > b.defSeq)? 1: -1).map((item,i)=> item.defSeq = i*10+10)
       return true;
     }
     return false;
@@ -237,8 +236,7 @@ export default function editButton(){ // ボタンの編集
               </View>
             </TouchableHighlight >
             <TouchableHighlight onLongPress={ () => {
-              writeLog(20, 'delete:' + scnNum + ' ' + buttonNum);
-              writeLog(20, 'delete:' + pgObj[scnNum].btnList[buttonNum].moji);
+              writeLog(20, 'delete:' + scnNum + ' ' + buttonNum + ' ' + pgObj[scnNum].btnList[buttonNum].moji);
               pgObj[scnNum].btnList.splice(buttonNum, 1);  //　エントリーを消す
               router.back();
             }} >
